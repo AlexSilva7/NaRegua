@@ -8,12 +8,12 @@ namespace NaRegua_API.Models.Auth
     {
         private static RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
 
-        public static string HashToken()
+        public static string HashKey(string key)
         {
             byte[] salt = new byte[16];
             rngCsp.GetBytes(salt);
 
-            var pbkdf2 = new Rfc2898DeriveBytes("Key", salt, 1000);
+            var pbkdf2 = new Rfc2898DeriveBytes(key, salt, 1000);
 
             byte[] hash = pbkdf2.GetBytes(20);
             byte[] hashBytes = new byte[36];

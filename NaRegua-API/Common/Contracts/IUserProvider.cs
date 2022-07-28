@@ -6,7 +6,6 @@ namespace NaRegua_API.Common.Contracts
     public interface IUserProvider
     {
         Task<CreateUserResult> CreateUserAsync(User user);
-        Task<GetUserResult> GetUserAsync(User user);
     }
 
     public class CreateUserResult

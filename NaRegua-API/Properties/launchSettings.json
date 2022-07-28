@@ -17,7 +17,7 @@
     },
     "NaRegua_API": {
       "commandName": "Project",
-      "launchBrowser": true,
+      "launchBrowser": false,
       "launchUrl": "v1/user",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
