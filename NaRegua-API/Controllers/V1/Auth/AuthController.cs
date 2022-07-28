@@ -33,7 +33,7 @@ namespace NaRegua_API.Controllers.V1.Auth
                     _logger.LogError("AuthController::SignAsync - Não foi possivel realizar o login.");
                     return BadRequest(result);
                 }
-
+                
                 var response = result.ToResponse();
                 _logger.LogInformation("AuthController::SignAsync");
 

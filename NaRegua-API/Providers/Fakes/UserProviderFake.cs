@@ -38,6 +38,11 @@ namespace NaRegua_API.Providers.Fakes
             });
         }
 
+        public Task<GetUserResult> GetUserAsync(User user)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private bool ChecksIfIsNullProperty(User user)
         {
             var properties = user.GetType().GetProperties();

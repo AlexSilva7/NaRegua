@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
 using NaRegua_API.Models.Saloon;
@@ -18,7 +19,8 @@ namespace NaRegua_API.Controllers.V1.Saloon
             _logger = logger;
             _provider = provider;
         }
-        
+
+        [Authorize]
         [HttpGet] // GET /v1/saloon/
         public async Task<IActionResult> GetSaloonsAsync()
         {

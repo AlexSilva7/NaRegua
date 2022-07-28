@@ -26,6 +26,7 @@ namespace NaRegua_API.Common.Dependency
                 _services.AddSingleton<IAuthProvider, AuthProviderFake>();
                 _services.AddSingleton<IHairdresserProvider, HairdresserProviderFake>();
                 _services.AddSingleton<ISaloonProvider, SaloonProviderFake>();
+                _services.AddSingleton<ITokenProvider, TokenProviderFake>();
             }
         }
     }

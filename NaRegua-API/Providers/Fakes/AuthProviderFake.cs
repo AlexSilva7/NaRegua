@@ -1,8 +1,9 @@
-﻿using NaRegua_API.Common.Contracts;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using NaRegua_API.Common.Contracts;
 using NaRegua_API.Models.Auth;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NaRegua_API.Providers.Fakes
@@ -10,10 +11,14 @@ namespace NaRegua_API.Providers.Fakes
     public class AuthProviderFake : IAuthProvider
     {
         public static List<LoggedUsers> loggedUsers;
+        readonly IConfiguration _configuration;
+        readonly ITokenProvider _tokenProvider;
 
-        public AuthProviderFake()
+        public AuthProviderFake(IConfiguration config, ITokenProvider tokenProvider)
         {
             loggedUsers = new List<LoggedUsers>();
+            _configuration = config;
+            _tokenProvider = tokenProvider;
         }
 
         public Task<AuthResult> SignAsync(Auth auth)
@@ -58,21 +63,24 @@ namespace NaRegua_API.Providers.Fakes
                     Success = false
                 });
 
-            var token = GetFakeToken();
+            //var token = GetFakeToken();
+            var token = _tokenProvider.BuildToken(_configuration["Jwt:Key"].ToString(), null, null, user);
+            //SessionExtensions.GetString("Token");
+
             loggedUsers.Add(new LoggedUsers
             {
                 Name = user.Name,
                 Document = user.Document,
                 Username = user.Login,
                 Token = token,
-                ExpireDateTime = DateTime.Now + TimeSpan.FromMinutes(20),
+                ExpireDateTime = DateTime.Now + TimeSpan.FromMinutes(30),
             });
 
             return Task.FromResult(
                 new AuthResult
                 {
                     Token = token,
-                    TimeExpireToken = DateTime.Now + TimeSpan.FromMinutes(20),
+                    TimeExpireToken = DateTime.Now + TimeSpan.FromMinutes(30),
                     Resources = new UserAuthenticatedResult
                     {
                         Name = user.Name,
@@ -85,7 +93,7 @@ namespace NaRegua_API.Providers.Fakes
                     Success = true
                 });
         }
-
+        /*
         private string GetFakeToken()
         {
             StringBuilder myStringBuilder = new StringBuilder("");
@@ -98,7 +106,7 @@ namespace NaRegua_API.Providers.Fakes
             }
 
             return myStringBuilder.ToString();
-        }
+        }*/
     }
 
     public class LoggedUsers
