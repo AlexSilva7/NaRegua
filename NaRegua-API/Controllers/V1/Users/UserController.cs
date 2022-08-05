@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
+using NaRegua_API.Models.Generics;
 using NaRegua_API.Models.Users;
 using System;
 using System.Threading.Tasks;

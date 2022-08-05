@@ -25,7 +25,7 @@ namespace NaRegua_API.Controllers.V1.Auth
         {
             try
             {
-                _logger.LogDebug($"AuthController::SignAsync");
+                _logger.LogDebug($"AuthController::SignAsync - Request: {request}");
                 var result = await _provider.SignAsync(request.ToDomain());
 
                 if (!result.Success)
@@ -35,13 +35,13 @@ namespace NaRegua_API.Controllers.V1.Auth
                 }
                 
                 var response = result.ToResponse();
-                _logger.LogInformation("AuthController::SignAsync");
+                _logger.LogInformation($"AuthController::SignAsync - Response: {response}");
 
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.ToString());
+                _logger.LogError($"{request} - {ex}");
                 return Problem(ex.Message);
             }
         }

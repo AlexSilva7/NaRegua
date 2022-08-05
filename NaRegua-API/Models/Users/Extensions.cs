@@ -21,7 +21,7 @@ namespace NaRegua_API.Models.Users
                 Name = input.Name,
                 Document = input.Document,
                 Email = input.Email,
-                Username = input.Login,
+                Username = input.Username,
                 Password = input.Password
             };
         }

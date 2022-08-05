@@ -1,6 +1,5 @@
 ﻿using NaRegua_API.Common.Contracts;
 using System.Linq;
-using static NaRegua_API.Models.Professional.Requests;
 using static NaRegua_API.Models.Saloon.Responses;
 
 namespace NaRegua_API.Models.Saloon

@@ -1,11 +1,12 @@
-﻿using NaRegua_API.Models.Users;
+﻿using NaRegua_API.Models.Generics;
+using NaRegua_API.Models.Users;
 using System.Threading.Tasks;
 
 namespace NaRegua_API.Common.Contracts
 {
     public interface IUserProvider
     {
-        Task<CreateUserResult> CreateUserAsync(User user);
+        Task<GenericResult> CreateUserAsync(User user);
     }
 
     public class CreateUserResult

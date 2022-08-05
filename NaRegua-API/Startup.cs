@@ -42,8 +42,8 @@ namespace NaRegua_API
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
                     ClockSkew = System.TimeSpan.Zero
                 };
             });

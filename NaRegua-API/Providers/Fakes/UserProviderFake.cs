@@ -1,5 +1,7 @@
 ﻿using NaRegua_API.Common.Contracts;
+using NaRegua_API.Common.Validations;
 using NaRegua_API.Models.Auth;
+using NaRegua_API.Models.Generics;
 using NaRegua_API.Models.Users;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,43 +17,26 @@ namespace NaRegua_API.Providers.Fakes
             users = new List<User>();
         }
 
-        public Task<CreateUserResult> CreateUserAsync(User user)
+        public Task<GenericResult> CreateUserAsync(User user)
         {
-            if (ChecksIfIsNullProperty(user))
+            if (Validations.ChecksIfIsNullProperty(user))
             {
-                return Task.FromResult(new CreateUserResult
+                return Task.FromResult(new GenericResult
                 {
                     Message = "User cannot be registered, incomplete fields",
                     Success = false
                 });
             }
 
-            user.IsCustomer = true;
             user.Password = Criptograph.HashPass(user.Password);
 
             users.Add(user);
 
-            return Task.FromResult(new CreateUserResult
+            return Task.FromResult(new GenericResult
             {
                 Message = "User registered successfully",
                 Success = true
             });
-        }
-
-        private bool ChecksIfIsNullProperty(User user)
-        {
-            var properties = user.GetType().GetProperties();
-            foreach (var property in properties)
-            {
-                if(property.PropertyType == typeof(string))
-                {
-                    var value = property.GetValue(user);
-
-                    if (value == null) return true;
-                }
-            }
-           
-            return false;
         }
     }
 }

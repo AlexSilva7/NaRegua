@@ -1,6 +1,8 @@
 ﻿using NaRegua_API.Common.Contracts;
+using NaRegua_API.Common.Validations;
 using NaRegua_API.Configurations;
 using NaRegua_API.Models.Auth;
+using NaRegua_API.Models.Users;
 using System;
 using System.Threading.Tasks;
 
@@ -9,15 +11,17 @@ namespace NaRegua_API.Providers.Fakes
     public class AuthProviderFake : IAuthProvider
     {
         readonly ITokenProvider _tokenProvider;
+        readonly IUserProvider _userProvider;
 
-        public AuthProviderFake(ITokenProvider tokenProvider)
+        public AuthProviderFake(ITokenProvider tokenProvider, IUserProvider userProvider)
         {
             _tokenProvider = tokenProvider;
+            _userProvider = userProvider;
         }
 
         public Task<AuthResult> SignAsync(Auth auth)
         {
-            if(String.IsNullOrWhiteSpace(auth.Login) || String.IsNullOrWhiteSpace(auth.Password))
+            if(Validations.ChecksIfIsNullProperty(auth))
             {
                 return Task.FromResult(new AuthResult
                 {
@@ -28,7 +32,9 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
-            if (UserProviderFake.users == null) return Task.FromResult(
+            if (UserProviderFake.users == null && HairdresserProviderFake.hairdressers == null)
+            {
+                return Task.FromResult(
                 new AuthResult
                 {
                     Token = "",
@@ -36,17 +42,36 @@ namespace NaRegua_API.Providers.Fakes
                     Message = "User not found",
                     Success = false
                 });
+            }
 
             var user = UserProviderFake.users.Find(x => x.Username == auth.Login);
+            
+            if (user == null)
+            {
+                var hairdressers = 
+                    HairdresserProviderFake.hairdressers.Find(x => x.Username == auth.Login);
 
-            if(user == null) return Task.FromResult(
-                new AuthResult
+                if(hairdressers == null)
                 {
-                    Token = "",
-                    Resources = null,
-                    Message = "User not found",
-                    Success = false
-                }); 
+                    return Task.FromResult(
+                    new AuthResult
+                    {
+                        Token = "",
+                        Resources = null,
+                        Message = "User not found",
+                        Success = false
+                    });
+                }
+
+                user = new User
+                {
+                    Name = hairdressers.Name,
+                    Username = hairdressers.Username,
+                    Document = hairdressers.Document,
+                    Email = hairdressers.Email,
+                    IsCustomer = hairdressers.IsCustomer
+                };
+            }
 
             if(user.Password != Criptograph.HashPass(auth.Password)) return Task.FromResult(
                 new AuthResult

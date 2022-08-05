@@ -1,19 +1,9 @@
-﻿using NaRegua_API.Common.Contracts;
-using static NaRegua_API.Models.Hairdresser.Requests;
-using static NaRegua_API.Models.Hairdresser.Responses;
+﻿using static NaRegua_API.Models.Hairdresser.Requests;
 
 namespace NaRegua_API.Models.Hairdresser
 {
     public static class Extensions
     {
-        public static CreateHairdresserResponse ToResponse(this CreateHairdresserResult input)
-        {
-            return new CreateHairdresserResponse
-            {
-                Success = input.Success
-            };
-        }
-
         public static Hairdresser ToDomain(this HairdresserRequest input)
         {
             return new Hairdresser
@@ -21,9 +11,19 @@ namespace NaRegua_API.Models.Hairdresser
                 Name = input.Name,
                 Document = input.Document,
                 Email = input.Email,
-                Login = input.Login,
+                Username = input.Username,
                 Password = input.Password,
                 SaloonCode = input.SaloonCode
+            };
+        }
+
+        public static WorkAvailability ToDomain(this WorkAvailabilityRequest input)
+        {
+            return new WorkAvailability
+            {
+                Date = input.Date,
+                StartHour = input.StartHour,
+                EndHour = input.EndHour
             };
         }
     }

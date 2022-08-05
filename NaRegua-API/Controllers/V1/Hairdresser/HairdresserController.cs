@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
+using NaRegua_API.Models.Generics;
 using NaRegua_API.Models.Hairdresser;
 using System;
 using System.Threading.Tasks;
@@ -20,22 +21,51 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
             _provider = provider;
         }
 
-        [HttpPost("hairdresser")] // POST /v1/hairdresser
+        [HttpPost] // POST /v1/hairdresser
         public async Task<IActionResult> CreateHairdresserAsync([FromBody] HairdresserRequest request)
         {
             try
             {
-                _logger.LogDebug($"HairdresserController::CreateProfessionalAsync");
+                _logger.LogDebug($"HairdresserController::CreateProfessionalAsync - {request}");
                 var result = await _provider.CreateHairdresserAsync(request.ToDomain());
 
                 if (!result.Success)
                 {
-                    _logger.LogError("HairdresserController::CreateProfessionalAsync - Não foi possivel cadastrar o Profissional.");
+                    _logger.LogError(
+                        "HairdresserController::CreateProfessionalAsync - " +
+                        "Não foi possivel cadastrar o Profissional.");
                     return BadRequest(result);
                 }
 
                 var response = result.ToResponse();
-                _logger.LogInformation("HairdresserController::CreateProfessionalAsync");
+                _logger.LogInformation($"HairdresserController::CreateProfessionalAsync - {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpPost("send-work-availability")] // POST /v1/hairdresser
+        public async Task<IActionResult> SendWorkAvailabilityAsync([FromBody] WorkAvailabilityRequest request)
+        {
+            try
+            {
+                _logger.LogDebug($"HairdresserController::SendWorkAvailability - {request}");
+                var result = await _provider.SendWorkAvailabilityAsync(request.ToDomain());
+
+                if (!result.Success)
+                {
+                    _logger.LogError("HairdresserController::SendWorkAvailabilityAsync - " +
+                        "Não foi possivel cadastrar a disponibilidade do Profissional.");
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"HairdresserController::SendWorkAvailability - {response}");
 
                 return Ok(response);
             }
