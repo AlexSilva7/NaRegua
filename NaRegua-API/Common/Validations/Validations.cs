@@ -1,4 +1,7 @@
-﻿namespace NaRegua_API.Common.Validations
+﻿using System.Security.Claims;
+using System.Security.Principal;
+
+namespace NaRegua_API.Common.Validations
 {
     public static class Validations
     {
@@ -16,6 +19,15 @@
             }
 
             return false;
+        }
+
+        public static string FindFirstClaimOfType(this IPrincipal principal, string claimType)
+        {
+            if (!(principal is ClaimsPrincipal claimsPrincipal)) { return null; }
+
+            var claim = claimsPrincipal.FindFirst(claimType);
+
+            return claim?.Value;
         }
     }
 }

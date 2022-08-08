@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
 using NaRegua_API.Models.Generics;
@@ -33,7 +34,7 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
                 {
                     _logger.LogError(
                         "HairdresserController::CreateProfessionalAsync - " +
-                        "Não foi possivel cadastrar o Profissional.");
+                        "Não foi possivel cadastrar o Profissional. ::" + result);
                     return BadRequest(result);
                 }
 
@@ -49,23 +50,80 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
             }
         }
 
-        [HttpPost("send-work-availability")] // POST /v1/hairdresser
+        [Authorize]
+        [HttpPost("send-work-availability")] // POST /v1/hairdresser/send-work-availability
         public async Task<IActionResult> SendWorkAvailabilityAsync([FromBody] WorkAvailabilityRequest request)
         {
             try
             {
                 _logger.LogDebug($"HairdresserController::SendWorkAvailability - {request}");
-                var result = await _provider.SendWorkAvailabilityAsync(request.ToDomain());
+                var result = await _provider.SendWorkAvailabilityAsync(request.ToDomain(), User);
 
                 if (!result.Success)
                 {
                     _logger.LogError("HairdresserController::SendWorkAvailabilityAsync - " +
-                        "Não foi possivel cadastrar a disponibilidade do Profissional.");
+                        "Não foi possivel cadastrar a disponibilidade do Profissional. ::" + result);
                     return BadRequest(result);
                 }
 
                 var response = result.ToResponse();
                 _logger.LogInformation($"HairdresserController::SendWorkAvailability - {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("hairdressers-list/{salonCode}")] // GET /v1/hairdressers-list/057952B
+        public async Task<IActionResult> GetHairdressersListOfSalonAsync(string salonCode)
+        {
+            try
+            {
+                _logger.LogDebug($"HairdresserController::GetHairdressersListOfSalon - {salonCode}");
+                var result = await _provider.GetHairdressersListOfSalon(salonCode);
+
+                if (!result.Success)
+                {
+                    _logger.LogError("HairdresserController::GetHairdressersListOfSalon - " +
+                        "Não foi possivel consultar a lista de Profissionais. ::" + result);
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"HairdresserController::GetHairdressersListOfSalon - {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("professional-availability/{document}")] // GET /v1/professional-availability/65240069707
+        public async Task<IActionResult> GetProfessionalAvailability(string document)
+        {
+            try
+            {
+                _logger.LogDebug($"HairdresserController::GetProfessionalAvailability - {document}");
+                var result = await _provider.GetProfessionalAvailability(document);
+
+                if (!result.Success)
+                {
+                    _logger.LogError("HairdresserController::GetProfessionalAvailability - " +
+                        "Não foi possivel consultar a disponibilidade do Profissional. ::" + result);
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"HairdresserController::GetProfessionalAvailability - {response}");
 
                 return Ok(response);
             }

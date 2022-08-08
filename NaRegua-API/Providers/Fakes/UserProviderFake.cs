@@ -10,11 +10,11 @@ namespace NaRegua_API.Providers.Fakes
 {
     public class UserProviderFake : IUserProvider
     {
-        public static List<User> users;
+        public static List<User> _users;
 
         public UserProviderFake()
         {
-            users = new List<User>();
+            _users = new List<User>();
         }
 
         public Task<GenericResult> CreateUserAsync(User user)
@@ -30,13 +30,18 @@ namespace NaRegua_API.Providers.Fakes
 
             user.Password = Criptograph.HashPass(user.Password);
 
-            users.Add(user);
+            _users.Add(user);
 
             return Task.FromResult(new GenericResult
             {
                 Message = "User registered successfully",
                 Success = true
             });
+        }
+
+        public IEnumerable<User> GetUsersList()
+        {
+            return _users;
         }
     }
 }
