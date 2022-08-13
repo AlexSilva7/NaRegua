@@ -10,7 +10,7 @@ namespace NaRegua_API.Models.Auth
         {
             return new Auth
             {
-                Login = input.Login,
+                Username = input.Username,
                 Password = input.Password
             };
         }
@@ -26,6 +26,7 @@ namespace NaRegua_API.Models.Auth
                     Name = input.Resources.Name,
                     Username = input.Resources.Username,
                     Document = input.Resources.Document,
+                    Phone = input.Resources.Phone,
                     Email = input.Resources.Email,
                     IsCustomer = input.Resources.IsCustomer
                 }

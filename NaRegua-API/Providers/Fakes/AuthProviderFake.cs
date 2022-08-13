@@ -47,12 +47,12 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
-            var user = _userProvider.GetUsersList().Where(x => x.Username == auth.Login).FirstOrDefault();
+            var user = _userProvider.GetUsersList().Where(x => x.Username == auth.Username).FirstOrDefault();
 
             if (user == null)
             {
                 var hairdressers =
-                    _hairdresserProvider.GetHairdressersList().Where(x => x.Username == auth.Login).FirstOrDefault();
+                    _hairdresserProvider.GetHairdressersList().Where(x => x.Username == auth.Username).FirstOrDefault();
 
                 if (hairdressers == null)
                 {
@@ -72,6 +72,7 @@ namespace NaRegua_API.Providers.Fakes
                     Username = hairdressers.Username,
                     Password = hairdressers.Password,
                     Document = hairdressers.Document,
+                    Phone = hairdressers.Phone,
                     Email = hairdressers.Email,
                     IsCustomer = hairdressers.IsCustomer
                 };

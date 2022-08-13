@@ -22,6 +22,7 @@ namespace NaRegua_API.Providers.Implementations.V1.Token
                 {
                     new Claim(ClaimTypes.Name, user.Name),
                     new Claim(ClaimTypes.Email, user.Email),
+                    new Claim("Phone", user.Phone),
                     new Claim("Document", user.Document),
                     new Claim("Username", user.Username),
                     new Claim("IsCustomer", user.IsCustomer.ToString())

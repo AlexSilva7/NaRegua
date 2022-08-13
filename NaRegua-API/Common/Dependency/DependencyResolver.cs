@@ -8,24 +8,15 @@ namespace NaRegua_API.Common.Dependency
 {
     public class DependencyResolver
     {
-        private readonly IServiceCollection _services;
-
-        public DependencyResolver(IServiceCollection services)
+        public static void SetDependency(IServiceCollection services)
         {
-            _services = services;
-            SetDependency();
-        }
-
-        private void SetDependency()
-        {
-            _services.AddSingleton<ITokenProvider, TokenProvider>();
-
+            services.AddSingleton<ITokenProvider, TokenProvider>();
             if (AppSettings.UseFakeProviders)
             {
-                _services.AddSingleton<IUserProvider, UserProviderFake>();
-                _services.AddSingleton<IAuthProvider, AuthProviderFake>();
-                _services.AddSingleton<IHairdresserProvider, HairdresserProviderFake>();
-                _services.AddSingleton<ISaloonProvider, SaloonProviderFake>();
+                services.AddSingleton<IUserProvider, UserProviderFake>();
+                services.AddSingleton<IAuthProvider, AuthProviderFake>();
+                services.AddSingleton<IHairdresserProvider, HairdresserProviderFake>();
+                services.AddSingleton<ISaloonProvider, SaloonProviderFake>();
             }
         }
     }

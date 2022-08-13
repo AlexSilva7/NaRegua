@@ -14,6 +14,7 @@ namespace NaRegua_API.Models.Hairdresser
         {
             public string Name { get; set; }
             public string Document { get; set; }
+            public string Phone { get; set; }
             public string Email { get; set; }
             public string SaloonCode { get; set; }
             public bool IsCustomer = false;
@@ -23,6 +24,19 @@ namespace NaRegua_API.Models.Hairdresser
         {
             public string Document { get; set; }
             public IEnumerable<DateTime> Resources { get; set; }
+        }
+
+        public class AppointmentsListResponse
+        {
+            public IEnumerable<AppointmentsResponse> Resources { get; set; }
+        }
+
+        public class AppointmentsResponse
+        {
+            public string CustomerName { get; set; }
+            public string CustomerDocument { get; set; }
+            public string CustomerPhone { get; set; }
+            public DateTime Scheduling { get; set; }
         }
     }
 }

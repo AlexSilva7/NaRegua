@@ -14,6 +14,22 @@ namespace NaRegua_API.Common.Contracts
         Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal);
         Task<ListHairdresserResult> GetHairdressersListOfSalon(string salonCode);
         Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document);
+        Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(string document);
+    }
+
+    public class AppointmentsListResult
+    {
+        public IEnumerable<AppointmentsResult> Resources { get; set; }
+        public string Message { get; set; }
+        public bool Success { get; set; }
+    }
+
+    public class AppointmentsResult
+    {
+        public string CustomerName { get; set; }
+        public string CustomerDocument { get; set; }
+        public string CustomerPhone { get; set; }
+        public DateTime Scheduling { get; set; }
     }
 
     public class ListHairdresserResult
@@ -27,6 +43,7 @@ namespace NaRegua_API.Common.Contracts
     {
         public string Name { get; set; }
         public string Document { get; set; }
+        public string Phone { get; set; }
         public string Email { get; set; }
         public string SaloonCode { get; set; }
         public bool IsCustomer = false;

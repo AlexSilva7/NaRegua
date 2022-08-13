@@ -14,7 +14,8 @@ namespace NaRegua_API.Common.Validations
                 {
                     var value = property.GetValue(input);
 
-                    if (value == null) return true;
+                    //if (value == null) return true;
+                    if (string.IsNullOrWhiteSpace(value.ToString())) return true;
                 }
             }
 

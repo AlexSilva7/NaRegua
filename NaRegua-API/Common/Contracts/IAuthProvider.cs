@@ -23,6 +23,7 @@ namespace NaRegua_API.Common.Contracts
         public string Name { get; set; }
         public string Username { get; set; }
         public string Document { get; set; }
+        public string Phone { get; set; }
         public string Email { get; set; }
         public bool IsCustomer { get; set; }
     }

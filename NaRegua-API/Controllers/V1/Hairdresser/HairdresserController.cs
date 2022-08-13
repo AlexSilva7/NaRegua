@@ -79,23 +79,23 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
         }
 
         [Authorize]
-        [HttpGet("hairdressers-list/{salonCode}")] // GET /v1/hairdressers-list/057952B
+        [HttpGet("hairdressers-list/{salonCode}")] // GET /v1/hairdresser/hairdressers-list/057952B
         public async Task<IActionResult> GetHairdressersListOfSalonAsync(string salonCode)
         {
             try
             {
-                _logger.LogDebug($"HairdresserController::GetHairdressersListOfSalon - {salonCode}");
+                _logger.LogDebug($"HairdresserController::GetHairdressersListOfSalon - Request: {salonCode}");
                 var result = await _provider.GetHairdressersListOfSalon(salonCode);
 
                 if (!result.Success)
                 {
                     _logger.LogError("HairdresserController::GetHairdressersListOfSalon - " +
-                        "Não foi possivel consultar a lista de Profissionais. ::" + result);
+                        "Não foi possivel consultar a lista de Profissionais. :: Result: " + result);
                     return BadRequest(result);
                 }
 
                 var response = result.ToResponse();
-                _logger.LogInformation($"HairdresserController::GetHairdressersListOfSalon - {response}");
+                _logger.LogInformation($"HairdresserController::GetHairdressersListOfSalon - Response: {response}");
 
                 return Ok(response);
             }
@@ -107,23 +107,51 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
         }
 
         [Authorize]
-        [HttpGet("professional-availability/{document}")] // GET /v1/professional-availability/65240069707
+        [HttpGet("professional-availability/{document}")] // GET /v1/hairdresser/professional-availability/65240069707
         public async Task<IActionResult> GetProfessionalAvailability(string document)
         {
             try
             {
-                _logger.LogDebug($"HairdresserController::GetProfessionalAvailability - {document}");
+                _logger.LogDebug($"HairdresserController::GetProfessionalAvailability - Request: {document}");
                 var result = await _provider.GetProfessionalAvailability(document);
 
                 if (!result.Success)
                 {
                     _logger.LogError("HairdresserController::GetProfessionalAvailability - " +
-                        "Não foi possivel consultar a disponibilidade do Profissional. ::" + result);
+                        "Não foi possivel consultar a disponibilidade do Profissional. - Result: " + result);
                     return BadRequest(result);
                 }
 
                 var response = result.ToResponse();
-                _logger.LogInformation($"HairdresserController::GetProfessionalAvailability - {response}");
+                _logger.LogInformation($"HairdresserController::GetProfessionalAvailability - Response: {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("professional-appointments/{document}")] // GET /v1/hairdresser/professional-appointments/65240069707
+        public async Task<IActionResult> GetAppointmentsFromTheProfessional(string document)
+        {
+            try
+            {
+                _logger.LogDebug($"HairdresserController::GetAppointmentsFromTheProfessional - Request: {document}");
+                var result = await _provider.GetAppointmentsFromTheProfessional(document);
+
+                if (!result.Success)
+                {
+                    _logger.LogError("HairdresserController::GetAppointmentsFromTheProfessional - " +
+                        "Não foi possivel consultar a disponibilidade do Profissional. - Result: " + result);
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"HairdresserController::GetAppointmentsFromTheProfessional - Response: {response}");
 
                 return Ok(response);
             }

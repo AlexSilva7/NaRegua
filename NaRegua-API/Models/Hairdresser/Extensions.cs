@@ -13,6 +13,7 @@ namespace NaRegua_API.Models.Hairdresser
             {
                 Name = input.Name,
                 Document = input.Document,
+                Phone = input.Phone,
                 Email = input.Email,
                 Username = input.Username,
                 Password = input.Password,
@@ -35,6 +36,7 @@ namespace NaRegua_API.Models.Hairdresser
             {
                 Name = input.Name,
                 Document = input.Document,
+                Phone = input.Phone,
                 Email = input.Email,
                 SaloonCode = input.SaloonCode,
                 IsCustomer = input.IsCustomer
@@ -67,6 +69,25 @@ namespace NaRegua_API.Models.Hairdresser
             {
                 Document = input.Document,
                 Resources = input.Resources
+            };
+        }
+
+        public static AppointmentsListResponse ToResponse(this AppointmentsListResult input)
+        {
+            return new AppointmentsListResponse
+            {
+                Resources = input.Resources.Select(item => item.ToDomain())
+            };
+        }
+
+        public static AppointmentsResponse ToDomain(this AppointmentsResult input)
+        {
+            return new AppointmentsResponse
+            {
+                CustomerName = input.CustomerName,
+                CustomerDocument = input.CustomerDocument,
+                CustomerPhone = input.CustomerPhone,
+                Scheduling = input.Scheduling
             };
         }
     }

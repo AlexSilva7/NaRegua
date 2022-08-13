@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
 using NaRegua_API.Models.Generics;
@@ -37,6 +38,33 @@ namespace NaRegua_API.Controllers.V1.Users
 
                 var response = result.ToResponse();
                 _logger.LogInformation("UserController::AddUserAsync");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpPost("schedule-appointment")] // POST /v1/user/schedule-appointment
+        [Authorize]
+        public async Task<IActionResult> ScheduleAppointmentAsync([FromBody] ScheduleAppointmentRequest request)
+        {
+            try
+            {
+                _logger.LogDebug($"UserController::ScheduleAppointmentAsync");
+                var result = await _provider.ScheduleAppointmentAsync(User, request.DateTime, request.DocumentProfessional);
+
+                if (!result.Success)
+                {
+                    _logger.LogError("UserController::ScheduleAppointmentAsync - Não foi possivel cadastrar o usuário.");
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation("UserController::ScheduleAppointmentAsync");
 
                 return Ok(response);
             }

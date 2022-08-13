@@ -15,6 +15,7 @@ namespace NaRegua_API.Providers.Fakes
     {
         public static List<Hairdresser> _hairdressers;
         public static List<Dictionary<string, List<DateTime>>> _workAvailabilityHairdressers;
+        public static List<Dictionary<string, Scheduling>> _scheduleAppointment;
         private readonly ISaloonProvider _saloonProvider;
 
         public HairdresserProviderFake(ISaloonProvider salonProvider)
@@ -22,6 +23,7 @@ namespace NaRegua_API.Providers.Fakes
             _hairdressers = new List<Hairdresser>();
             _saloonProvider = salonProvider;
             _workAvailabilityHairdressers = new List<Dictionary<string, List<DateTime>>>();
+            _scheduleAppointment = new List<Dictionary<string, Scheduling>>();
         }
 
         public Task<GenericResult> CreateHairdresserAsync(Hairdresser hairdresser)
@@ -176,12 +178,10 @@ namespace NaRegua_API.Providers.Fakes
                 list.AddRange(listAux);
             }
 
-            var dict = new Dictionary<string, List<DateTime>>();
-
             return Task.FromResult(new ProfessionalAvailabilityResult
             {
                 Document = document,
-                Resources = list.OrderBy(x => x.Date),
+                Resources = list.OrderBy(x => x.Date).Distinct(),
                 Success = true
             });
         }
@@ -209,6 +209,11 @@ namespace NaRegua_API.Providers.Fakes
             }
 
             return new RegisteredResult { Registered = false };
+        }
+
+        public Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(string document)
+        {
+            throw new NotImplementedException();
         }
 
         private class RegisteredResult
