@@ -10,11 +10,13 @@ namespace NaRegua_API.Common.Contracts
     public interface IHairdresserProvider
     {
         IEnumerable<Hairdresser> GetHairdressersList();
+        Hairdresser GetHairdressersFromDocument(string document);
         Task<GenericResult> CreateHairdresserAsync(Hairdresser hairdresser);
-        Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal);
         Task<ListHairdresserResult> GetHairdressersListOfSalon(string salonCode);
+        Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal);
         Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document);
         Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(string document);
+        Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime);
     }
 
     public class AppointmentsListResult

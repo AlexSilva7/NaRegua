@@ -6,6 +6,7 @@ namespace NaRegua_API.Common.Contracts
     public interface ISaloonProvider
     {
         Task<ListSaloonsResult> GetSaloonsAsync();
+        Task<SaloonsResult> GetSaloonAsync(string saloonCode);
     }
 
     public class ListSaloonsResult

@@ -11,9 +11,9 @@ namespace NaRegua_API.Providers.Fakes
 {
     public class AuthProviderFake : IAuthProvider
     {
-        readonly ITokenProvider _tokenProvider;
-        readonly IUserProvider _userProvider;
-        readonly IHairdresserProvider _hairdresserProvider;
+        private readonly ITokenProvider _tokenProvider;
+        private readonly IUserProvider _userProvider;
+        private readonly IHairdresserProvider _hairdresserProvider;
 
         public AuthProviderFake(ITokenProvider tokenProvider, IUserProvider userProvider, IHairdresserProvider hairdresserProvider)
         {

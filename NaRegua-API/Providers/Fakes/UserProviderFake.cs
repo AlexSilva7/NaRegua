@@ -14,13 +14,13 @@ namespace NaRegua_API.Providers.Fakes
 {
     public class UserProviderFake : IUserProvider
     {
-        public static List<User> _users;
-        public static List<Dictionary<string, Scheduling>> _scheduleAppointment;
+        private readonly IHairdresserProvider _hairdresserProvider;
+        public static List<User> _users = new List<User>();
+        public static List<Dictionary<string, Scheduling>> _scheduleAppointment = new List<Dictionary<string, Scheduling>>();
 
-        public UserProviderFake()
+        public UserProviderFake(IHairdresserProvider hairdresserProvider)
         {
-            _users = new List<User>();
-            _scheduleAppointment = new List<Dictionary<string, Scheduling>>();
+            _hairdresserProvider = hairdresserProvider;
         }
 
         public Task<GenericResult> CreateUserAsync(User user)
@@ -62,10 +62,9 @@ namespace NaRegua_API.Providers.Fakes
 
         public Task<GenericResult> ScheduleAppointmentAsync(IPrincipal user, DateTime dateTime, string documentProfessional)
         {
-            if (HairdresserProviderFake._hairdressers == null ||
-                HairdresserProviderFake._hairdressers.Where(x => x.Document == documentProfessional).Count() == 0 ||
-                HairdresserProviderFake._workAvailabilityHairdressers == null ||
-                HairdresserProviderFake._workAvailabilityHairdressers.Where(x => x.Keys.Contains(documentProfessional)).Count() == 0)
+            if (_hairdresserProvider.GetHairdressersList().Count() == 0 ||
+                _hairdresserProvider.GetHairdressersFromDocument(documentProfessional) == null ||
+                !_hairdresserProvider.GetProfessionalAvailability(documentProfessional).Result.Success)
             {
                 return Task.FromResult(new GenericResult
                 {
@@ -74,23 +73,21 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
-            //Remove horário disponível para o profissional
-            var availabilitys = HairdresserProviderFake._workAvailabilityHairdressers
-                .Where(x => x.ContainsKey(documentProfessional)).Distinct();
-
-            foreach (var availability in availabilitys)
+            var verifyAvailability = _hairdresserProvider.GetProfessionalAvailability(documentProfessional).Result.Resources.Contains(dateTime);
+            if (!verifyAvailability)
             {
-                var dateTimes = availability.GetValueOrDefault(documentProfessional);
-                if (!VerifyIfAvailabilityExistsAndDelete(dateTimes, dateTime))
+                return Task.FromResult(new GenericResult
                 {
-
-                }
+                    Message = "Professional does not have this availability",
+                    Success = false
+                });
             }
 
-            var hairdresser = HairdresserProviderFake._hairdressers.Where(x => x.Document == documentProfessional).First();
+            //Remove horário disponível para o profissional
+            _hairdresserProvider.SetAppointmentsFromTheProfessional(user, documentProfessional, dateTime);
 
-            var name = Validations.FindFirstClaimOfType(user, ClaimTypes.Name);
-            var phone = Validations.FindFirstClaimOfType(user, "Phone");
+            var hairdresser = _hairdresserProvider.GetHairdressersFromDocument(documentProfessional);
+
             var document = Validations.FindFirstClaimOfType(user, "Document");
 
             //Add marcação para o usuário
@@ -104,39 +101,11 @@ namespace NaRegua_API.Providers.Fakes
             });
             _scheduleAppointment.Add(scheduleUser);
 
-            //Add marcação para o profissional
-            var scheduleHairdresser = new Dictionary<string, Models.Hairdresser.Scheduling>();
-            scheduleHairdresser.Add(documentProfessional, new Models.Hairdresser.Scheduling
-            {
-                CustomerName = name,
-                CustomerPhone = phone,
-                DateTime = dateTime
-            });
-            HairdresserProviderFake._scheduleAppointment.Add(scheduleHairdresser);
-
             return Task.FromResult(new GenericResult
             {
-                Message = "Scheduling done.",
+                Message = "Appointment made.",
                 Success = true
             });
-        }
-
-        private bool VerifyIfAvailabilityExistsAndDelete(List<DateTime> dateTimes, DateTime dateTime)
-        {
-            var exists = false;
-
-            foreach (var date in dateTimes)
-            {
-                if (date == dateTime) exists = true;
-            }
-
-            if (exists)
-            {
-                dateTimes.Remove(dateTime);
-                return true;
-            }
-
-            return false;
         }
 
         private RegisteredResult CheckIfAlreadyRegistered(string document, string username, string email)

@@ -17,6 +17,12 @@ namespace NaRegua_API.Providers.Fakes
             RegisterSalonsFakes("011Z79", "Cachopa, nº 150", "Bem Bolado", "21978950");
         }
 
+        public Task<SaloonsResult> GetSaloonAsync(string saloonCode)
+        {
+            var saloon = saloons.Find(x => x.SaloonCode == saloonCode);
+            return Task.FromResult(saloon);
+        }
+
         public Task<ListSaloonsResult> GetSaloonsAsync()
         {
             return Task.FromResult(new ListSaloonsResult

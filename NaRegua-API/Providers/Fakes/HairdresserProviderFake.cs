@@ -6,6 +6,7 @@ using NaRegua_API.Models.Hairdresser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 
@@ -13,17 +14,29 @@ namespace NaRegua_API.Providers.Fakes
 {
     public class HairdresserProviderFake : IHairdresserProvider
     {
-        public static List<Hairdresser> _hairdressers;
-        public static List<Dictionary<string, List<DateTime>>> _workAvailabilityHairdressers;
-        public static List<Dictionary<string, Scheduling>> _scheduleAppointment;
         private readonly ISaloonProvider _saloonProvider;
+
+        public static List<Hairdresser> _hairdressers = new List<Hairdresser>();
+
+        public static List<Dictionary<string, List<DateTime>>> _workAvailabilityHairdressers = 
+            new List<Dictionary<string, List<DateTime>>>();
+
+        public static List<Dictionary<string, Scheduling>> _scheduleAppointment = 
+            new List<Dictionary<string, Scheduling>>();
 
         public HairdresserProviderFake(ISaloonProvider salonProvider)
         {
-            _hairdressers = new List<Hairdresser>();
             _saloonProvider = salonProvider;
-            _workAvailabilityHairdressers = new List<Dictionary<string, List<DateTime>>>();
-            _scheduleAppointment = new List<Dictionary<string, Scheduling>>();
+        }
+
+        public Hairdresser GetHairdressersFromDocument(string document)
+        {
+            return _hairdressers.Where(x => x.Document == document).FirstOrDefault();
+        }
+
+        public IEnumerable<Hairdresser> GetHairdressersList()
+        {
+            return _hairdressers;
         }
 
         public Task<GenericResult> CreateHairdresserAsync(Hairdresser hairdresser)
@@ -37,8 +50,7 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
-            var saloons = _saloonProvider.GetSaloonsAsync();
-            var saloon = saloons.Result.Resources.Where(x => x.SaloonCode == hairdresser.SaloonCode);
+            var saloon = _saloonProvider.GetSaloonAsync(hairdresser.SaloonCode);
 
             if (saloon == null)
             {
@@ -70,9 +82,9 @@ namespace NaRegua_API.Providers.Fakes
             });
         }
 
-        public Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal user)
+        public Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal)
         {
-            var isCustomer = Validations.FindFirstClaimOfType(user, "IsCustomer");
+            var isCustomer = Validations.FindFirstClaimOfType(principal, "IsCustomer");
             if (bool.Parse(isCustomer))
             {
                 return Task.FromResult(new GenericResult
@@ -100,7 +112,7 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
-            var document = Validations.FindFirstClaimOfType(user, "Document");
+            var document = Validations.FindFirstClaimOfType(principal, "Document");
 
             var hours = new List<DateTime>();
             for (var x = availability.StartHour; x < availability.EndHour; x = x.AddHours(1))
@@ -118,11 +130,6 @@ namespace NaRegua_API.Providers.Fakes
                 Message = "Times Registered Successfully",
                 Success = true
             });
-        }
-
-        public IEnumerable<Hairdresser> GetHairdressersList()
-        {
-            return _hairdressers;
         }
 
         public Task<ListHairdresserResult> GetHairdressersListOfSalon(string salonCode)
@@ -151,7 +158,7 @@ namespace NaRegua_API.Providers.Fakes
 
             var availability = _workAvailabilityHairdressers.Where(x => x.Keys.Contains(document));
 
-            if (availability == null)
+            if (availability.Count() == 0)
             {
                 return Task.FromResult(new ProfessionalAvailabilityResult
                 {
@@ -186,6 +193,47 @@ namespace NaRegua_API.Providers.Fakes
             });
         }
 
+        public Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(string document)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime)
+        {
+            var name = Validations.FindFirstClaimOfType(principal, ClaimTypes.Name);
+            var phone = Validations.FindFirstClaimOfType(principal, "Phone");
+
+            //Adiciona compromisso para o profissional
+            var scheduleHairdresser = new Dictionary<string, Scheduling>();
+            scheduleHairdresser.Add(document, new Scheduling
+            {
+                CustomerName = name,
+                CustomerPhone = phone,
+                DateTime = dateTime
+            });
+
+            _scheduleAppointment.Add(scheduleHairdresser);
+
+            //Remove horário da lista de disponibilidade
+            var availabilitys = _workAvailabilityHairdressers.Where(x => x.Keys.Contains(document));
+            foreach (var availability in availabilitys)
+            {
+                var value = new List<DateTime>();
+                bool hasValue = availability.TryGetValue(document, out value);
+
+                if (hasValue)
+                {
+                    value.Remove(dateTime);
+                }
+            }
+
+            return Task.FromResult(new GenericResult
+            {
+                Message = "Scheduling done.",
+                Success = true
+            });
+        }
+
         private RegisteredResult CheckIfAlreadyRegistered(string document, string username, string email)
         {
             if(GetHairdressersList().Where(x => x.Document == document).Count() != 0) 
@@ -209,11 +257,6 @@ namespace NaRegua_API.Providers.Fakes
             }
 
             return new RegisteredResult { Registered = false };
-        }
-
-        public Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(string document)
-        {
-            throw new NotImplementedException();
         }
 
         private class RegisteredResult
