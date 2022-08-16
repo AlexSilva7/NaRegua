@@ -20,5 +20,11 @@ namespace NaRegua_API.Models.Hairdresser
             public DateTime StartHour { get; set; }
             public DateTime EndHour { get; set; }
         }
+
+        public class ProfessionalEvaluationRequest
+        {
+            public string Document { get; set; }
+            public double Evaluation { get; set; }
+        }
     }
 }

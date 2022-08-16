@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
+using NaRegua_API.Common.Validations;
 using NaRegua_API.Models.Generics;
 using NaRegua_API.Models.Users;
 using System;
@@ -52,6 +53,11 @@ namespace NaRegua_API.Controllers.V1.Users
         [Authorize]
         public async Task<IActionResult> ScheduleAppointmentAsync([FromBody] ScheduleAppointmentRequest request)
         {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
             try
             {
                 _logger.LogDebug($"UserController::ScheduleAppointmentAsync");
@@ -65,6 +71,38 @@ namespace NaRegua_API.Controllers.V1.Users
 
                 var response = result.ToResponse();
                 _logger.LogInformation("UserController::ScheduleAppointmentAsync");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [HttpGet("schedule-appointment")] // GET /v1/user/appointment
+        [Authorize]
+        public async Task<IActionResult> GetAppointmentAsync()
+        {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _logger.LogDebug($"UserController::GetAppointmentAsync");
+                var result = await _provider.GetAppointmentAsync(User);
+
+                if (!result.Success)
+                {
+                    _logger.LogError($"UserController::GetAppointmentAsync - {result.Message}");
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"UserController::ScheduleAppointmentAsync - {response}");
 
                 return Ok(response);
             }

@@ -38,5 +38,10 @@ namespace NaRegua_API.Models.Hairdresser
             public string CustomerPhone { get; set; }
             public DateTime Scheduling { get; set; }
         }
+
+        public class EvaluationAverageResponse
+        {
+            public double Average { get; set; }
+        }
     }
 }

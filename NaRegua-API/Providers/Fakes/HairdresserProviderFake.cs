@@ -24,6 +24,9 @@ namespace NaRegua_API.Providers.Fakes
         public static List<Dictionary<string, Scheduling>> _scheduleAppointment = 
             new List<Dictionary<string, Scheduling>>();
 
+        public static List<Dictionary<string, double>> _evaluationAverages =
+            new List<Dictionary<string, double>>();
+
         public HairdresserProviderFake(ISaloonProvider salonProvider)
         {
             _saloonProvider = salonProvider;
@@ -84,16 +87,6 @@ namespace NaRegua_API.Providers.Fakes
 
         public Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal)
         {
-            var isCustomer = Validations.FindFirstClaimOfType(principal, "IsCustomer");
-            if (bool.Parse(isCustomer))
-            {
-                return Task.FromResult(new GenericResult
-                {
-                    Message = "Only professionals can register availability.",
-                    Success = false
-                });
-            }
-
             if (availability.EndHour.Date != availability.StartHour.Date)
             {
                 return Task.FromResult(new GenericResult
@@ -193,9 +186,28 @@ namespace NaRegua_API.Providers.Fakes
             });
         }
 
-        public Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(string document)
+        public Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(IPrincipal principal)
         {
-            throw new NotImplementedException();
+            var document = Validations.FindFirstClaimOfType(principal, "Document");
+            var appointments = _scheduleAppointment.FindAll(x => x.Keys.Contains(document));
+
+            var result = new List<AppointmentsResult>();
+            foreach(var appointment in appointments)
+            {
+                var scheduling = appointment.GetValueOrDefault(document);
+                result.Add(new AppointmentsResult
+                {
+                    CustomerName = scheduling.CustomerName,
+                    CustomerPhone = scheduling.CustomerPhone,
+                    DateTime = scheduling.DateTime
+                });
+            }
+
+            return Task.FromResult(new AppointmentsListResult
+            {
+                Resources = result,
+                Success = true
+            });
         }
 
         public Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime)
@@ -215,7 +227,7 @@ namespace NaRegua_API.Providers.Fakes
             _scheduleAppointment.Add(scheduleHairdresser);
 
             //Remove horário da lista de disponibilidade
-            var availabilitys = _workAvailabilityHairdressers.Where(x => x.Keys.Contains(document));
+            var availabilitys = _workAvailabilityHairdressers.FindAll(x => x.Keys.Contains(document));
             foreach (var availability in availabilitys)
             {
                 var value = new List<DateTime>();
@@ -230,6 +242,44 @@ namespace NaRegua_API.Providers.Fakes
             return Task.FromResult(new GenericResult
             {
                 Message = "Scheduling done.",
+                Success = true
+            });
+        }
+
+        public Task<EvaluationAverageResult> GetEvaluationAverageFromTheProfessional(string document)
+        {
+            var evaluations = _evaluationAverages.FindAll(x => x.Keys.Contains(document));
+            var average = 0.0;
+            foreach (var evaluation in evaluations)
+            {
+                average += evaluation.GetValueOrDefault(document);
+            }
+
+            return Task.FromResult(new EvaluationAverageResult
+            {
+                Average = average,
+                Success = true
+            });
+        }
+
+        public Task<GenericResult> SendEvaluationAverageFromTheProfessional(ProfessionalEvaluation evaluation)
+        {
+            if (Validations.ChecksIfIsNullProperty(evaluation))
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Message = "Incomplete fields.",
+                    Success = false
+                });
+            }
+
+            var dict = new Dictionary<string, double>();
+            dict.Add(evaluation.Document, evaluation.Evaluation);
+            _evaluationAverages.Add(dict);
+
+            return Task.FromResult(new GenericResult
+            {
+                Message = "Review sent.",
                 Success = true
             });
         }

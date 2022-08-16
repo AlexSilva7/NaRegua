@@ -6,11 +6,10 @@ namespace NaRegua_API.Providers.Fakes
 {
     public class SaloonProviderFake : ISaloonProvider
     {
-        public static List<SaloonsResult> saloons;
+        public static List<SaloonsResult> saloons = new List<SaloonsResult>();
 
         public SaloonProviderFake()
         {
-            saloons = new List<SaloonsResult>();
             RegisterSalonsFakes("045B79", "Travessa União, nº9", "Salão Top Hair", "219785433");
             RegisterSalonsFakes("978C50", "Rua 1, nº 399", "Só os Cria", "215587499");
             RegisterSalonsFakes("022D79", "Casa da paz, nº 500", "Salão Top Hair", "219785433");

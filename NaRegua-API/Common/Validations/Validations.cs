@@ -30,5 +30,10 @@ namespace NaRegua_API.Common.Validations
 
             return claim?.Value;
         }
+
+        public static bool IsCustomer(IPrincipal principal)
+        {
+            return bool.Parse(FindFirstClaimOfType(principal, "IsCustomer"));
+        }
     }
 }

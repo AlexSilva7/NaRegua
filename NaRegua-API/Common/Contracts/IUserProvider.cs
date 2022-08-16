@@ -12,20 +12,13 @@ namespace NaRegua_API.Common.Contracts
         Task<GenericResult> ScheduleAppointmentAsync(IPrincipal user, DateTime dateTime, string document);
         Task<GenericResult> CreateUserAsync(User user);
         IEnumerable<User> GetUsersList();
+        Task<SchedulingResult> GetAppointmentAsync(IPrincipal user);
     }
 
-    public class CreateUserResult
+    public class SchedulingResult
     {
-        public string Message { get; set; }
+        public IEnumerable<Scheduling> Resource { get; set; }
         public bool Success { get; set; }
-    }
-
-    public class GetUserResult
-    {
-        public string Name { get; set; }
-        public string Document { get; set; }
-        public string Email { get; set; }
-        public string Login { get; set; }
-        public bool IsCustomer { get; set; }
+        public string Message { get; set; }
     }
 }

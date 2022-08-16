@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
+using NaRegua_API.Common.Validations;
 using NaRegua_API.Models.Saloon;
 using System;
 using System.Threading.Tasks;
@@ -24,6 +25,11 @@ namespace NaRegua_API.Controllers.V1.Saloon
         [HttpGet] // GET /v1/saloon/
         public async Task<IActionResult> GetSaloonsAsync()
         {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
             try
             {
                 _logger.LogDebug($"SaloonController::GetSaloonsAsync");
@@ -36,7 +42,7 @@ namespace NaRegua_API.Controllers.V1.Saloon
                 }
 
                 var response = result.ToResponse();
-                _logger.LogInformation("SaloonController::GetSaloonsAsync");
+                _logger.LogInformation($"SaloonController::GetSaloonsAsync - {response}");
 
                 return Ok(response);
             }

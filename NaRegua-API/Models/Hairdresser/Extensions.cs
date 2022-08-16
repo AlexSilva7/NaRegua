@@ -85,9 +85,25 @@ namespace NaRegua_API.Models.Hairdresser
             return new AppointmentsResponse
             {
                 CustomerName = input.CustomerName,
-                CustomerDocument = input.CustomerDocument,
                 CustomerPhone = input.CustomerPhone,
-                Scheduling = input.Scheduling
+                Scheduling = input.DateTime
+            };
+        }
+
+        public static EvaluationAverageResponse ToResponse(this EvaluationAverageResult input)
+        {
+            return new EvaluationAverageResponse
+            {
+                Average = input.Average
+            };
+        }
+
+        public static ProfessionalEvaluation ToDomain(this ProfessionalEvaluationRequest input)
+        {
+            return new ProfessionalEvaluation
+            {
+                Document = input.Document,
+                Evaluation = input.Evaluation
             };
         }
     }

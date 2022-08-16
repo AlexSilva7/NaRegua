@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NaRegua_API.Common.Contracts;
+using NaRegua_API.Common.Validations;
 using NaRegua_API.Models.Generics;
 using NaRegua_API.Models.Hairdresser;
 using System;
@@ -54,6 +55,11 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
         [HttpPost("send-work-availability")] // POST /v1/hairdresser/send-work-availability
         public async Task<IActionResult> SendWorkAvailabilityAsync([FromBody] WorkAvailabilityRequest request)
         {
+            if (Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
             try
             {
                 _logger.LogDebug($"HairdresserController::SendWorkAvailability - {request}");
@@ -82,6 +88,11 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
         [HttpGet("hairdressers-list/{salonCode}")] // GET /v1/hairdresser/hairdressers-list/057952B
         public async Task<IActionResult> GetHairdressersListOfSalonAsync(string salonCode)
         {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
             try
             {
                 _logger.LogDebug($"HairdresserController::GetHairdressersListOfSalon - Request: {salonCode}");
@@ -110,6 +121,11 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
         [HttpGet("professional-availability/{document}")] // GET /v1/hairdresser/professional-availability/65240069707
         public async Task<IActionResult> GetProfessionalAvailability(string document)
         {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
             try
             {
                 _logger.LogDebug($"HairdresserController::GetProfessionalAvailability - Request: {document}");
@@ -135,13 +151,18 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
         }
 
         [Authorize]
-        [HttpGet("professional-appointments/{document}")] // GET /v1/hairdresser/professional-appointments/65240069707
-        public async Task<IActionResult> GetAppointmentsFromTheProfessional(string document)
+        [HttpGet("professional-appointments")] // GET /v1/hairdresser/professional-appointments
+        public async Task<IActionResult> GetAppointmentsFromTheProfessional()
         {
+            if (Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
             try
             {
-                _logger.LogDebug($"HairdresserController::GetAppointmentsFromTheProfessional - Request: {document}");
-                var result = await _provider.GetAppointmentsFromTheProfessional(document);
+                _logger.LogDebug($"HairdresserController::GetAppointmentsFromTheProfessional - Request");
+                var result = await _provider.GetAppointmentsFromTheProfessional(User);
 
                 if (!result.Success)
                 {
@@ -152,6 +173,67 @@ namespace NaRegua_API.Controllers.V1.Hairdresser
 
                 var response = result.ToResponse();
                 _logger.LogInformation($"HairdresserController::GetAppointmentsFromTheProfessional - Response: {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("evaluation-average/{document}")] // GET /v1/hairdresser/evaluation-average
+        public async Task<IActionResult> GetEvaluationAverage(string document)
+        {
+            try
+            {
+                _logger.LogDebug($"HairdresserController::GetEvaluationAverage - Request: {document}");
+                var result = await _provider.GetEvaluationAverageFromTheProfessional(document);
+
+                if (!result.Success)
+                {
+                    _logger.LogError("HairdresserController::GetEvaluationAverage - " +
+                        "Não foi possivel consultar a disponibilidade do Profissional. - Result: " + result);
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"HairdresserController::GetEvaluationAverage - Response: {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("evaluation-average")] // POST /v1/hairdresser/evaluation-average
+        public async Task<IActionResult> SendEvaluationAverage([FromBody] ProfessionalEvaluationRequest request)
+        {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _logger.LogDebug($"HairdresserController::SendEvaluationAverage - Request: {request}");
+                var result = await _provider.SendEvaluationAverageFromTheProfessional(request.ToDomain());
+
+                if (!result.Success)
+                {
+                    _logger.LogError("HairdresserController::SendEvaluationAverage - " +
+                        "Não foi possivel consultar a disponibilidade do Profissional. - Result: " + result);
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"HairdresserController::SendEvaluationAverage - Response: {response}");
 
                 return Ok(response);
             }

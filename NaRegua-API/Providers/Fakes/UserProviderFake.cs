@@ -6,7 +6,6 @@ using NaRegua_API.Models.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
 
@@ -15,12 +14,14 @@ namespace NaRegua_API.Providers.Fakes
     public class UserProviderFake : IUserProvider
     {
         private readonly IHairdresserProvider _hairdresserProvider;
+        private readonly ISaloonProvider _saloonProvider;
         public static List<User> _users = new List<User>();
         public static List<Dictionary<string, Scheduling>> _scheduleAppointment = new List<Dictionary<string, Scheduling>>();
 
-        public UserProviderFake(IHairdresserProvider hairdresserProvider)
+        public UserProviderFake(IHairdresserProvider hairdresserProvider, ISaloonProvider saloonProvider)
         {
             _hairdresserProvider = hairdresserProvider;
+            _saloonProvider = saloonProvider;
         }
 
         public Task<GenericResult> CreateUserAsync(User user)
@@ -73,7 +74,9 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
-            var verifyAvailability = _hairdresserProvider.GetProfessionalAvailability(documentProfessional).Result.Resources.Contains(dateTime);
+            var verifyAvailability = _hairdresserProvider.GetProfessionalAvailability(documentProfessional)
+                .Result.Resources.Contains(dateTime);
+
             if (!verifyAvailability)
             {
                 return Task.FromResult(new GenericResult
@@ -83,12 +86,29 @@ namespace NaRegua_API.Providers.Fakes
                 });
             }
 
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+
+            //verifica se usuário já tem uma marcação naquele dia
+            var schedules = _scheduleAppointment.FindAll(x => x.Keys.Contains(document));
+            foreach(var schedule in schedules)
+            {
+                var date = schedule.GetValueOrDefault(document).DateTime.Date;
+                if (date == dateTime)
+                {
+                    return Task.FromResult(new GenericResult
+                    {
+                        Message = "User already has a booking today.",
+                        Success = false
+                    });
+                }
+            }
+
             //Remove horário disponível para o profissional
             _hairdresserProvider.SetAppointmentsFromTheProfessional(user, documentProfessional, dateTime);
 
             var hairdresser = _hairdresserProvider.GetHairdressersFromDocument(documentProfessional);
+            var saloon = _saloonProvider.GetSaloonAsync(hairdresser.SaloonCode).Result;
 
-            var document = Validations.FindFirstClaimOfType(user, "Document");
 
             //Add marcação para o usuário
             var scheduleUser = new Dictionary<string, Scheduling>();
@@ -96,13 +116,37 @@ namespace NaRegua_API.Providers.Fakes
             {
                 ProfessionalName = hairdresser.Name,
                 ProfessionalPhone = hairdresser.Phone,
-                SalonAdress = hairdresser.SaloonCode,
+                SalonAdress = saloon.Address,
                 DateTime = dateTime
             });
             _scheduleAppointment.Add(scheduleUser);
 
             return Task.FromResult(new GenericResult
             {
+                Message = "Appointment made.",
+                Success = true
+            });
+        }
+
+        public Task<SchedulingResult> GetAppointmentAsync(IPrincipal user)
+        {
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+            var scheduleList = _scheduleAppointment.FindAll(x => x.Keys.Contains(document));
+
+            var result = new List<Scheduling>();
+            foreach (var schedule in scheduleList)
+            {
+                var value = schedule.GetValueOrDefault(document);
+                if (value.DateTime.Date >= DateTime.Now.Date)
+                {
+                    result.Add(value);
+                }
+            }
+
+
+            return Task.FromResult(new SchedulingResult
+            {
+                Resource = result,
                 Message = "Appointment made.",
                 Success = true
             });
