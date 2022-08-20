@@ -81,7 +81,7 @@ namespace NaRegua_Api.Controllers.V1.Users
 
         
         [Authorize]
-        [HttpGet("schedule-appointment")] // GET /v1/user/appointment
+        [HttpGet("schedule-appointment")] // GET /v1/user/schedule-appointment
         public async Task<IActionResult> GetAppointmentAsync()
         {
             if (!Validations.IsCustomer(User))
@@ -113,7 +113,7 @@ namespace NaRegua_Api.Controllers.V1.Users
         }
 
         [Authorize]
-        [HttpPost("add-favorite-salon")]
+        [HttpPost("add-favorite-salon")] //POST /v1/user/add-favorite-salon
         public async Task<IActionResult> PostSalonAsFavoriteAsync([FromBody] AddFavoriteRequest request)
         {
             if (!Validations.IsCustomer(User))

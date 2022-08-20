@@ -96,6 +96,7 @@ namespace NaRegua_Api.Providers.Fakes
                         Name = user.Name,
                         Username = user.Username,
                         Document = user.Document,
+                        Phone = user.Phone,
                         Email = user.Email,
                         IsCustomer = user.IsCustomer
                     },

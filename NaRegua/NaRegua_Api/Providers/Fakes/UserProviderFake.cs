@@ -72,6 +72,16 @@ namespace NaRegua_Api.Providers.Fakes
                     Success = false
                 });
             }
+            var x = dateTime.Date.ToLocalTime();
+            var a = DateTime.Now.Date.ToLocalTime();
+            if (dateTime.Date.ToLocalTime() < DateTime.Now.Date.ToLocalTime())
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Message = "Invalid datetime",
+                    Success = false
+                });
+            }
 
             var verifyAvailability = _hairdresserProvider.GetProfessionalAvailability(documentProfessional)
                 .Result.Resources.Contains(dateTime);
@@ -163,6 +173,15 @@ namespace NaRegua_Api.Providers.Fakes
         {
             var document = Validations.FindFirstClaimOfType(user, "Document");
             var saloon = _saloonProvider.GetSaloon(saloonCode);
+
+            if(saloon is null)
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Message = "salon not found.",
+                    Success = false
+                });
+            }
 
             var favoriteDict = new Dictionary<string, Saloon>();
             favoriteDict.Add(document, saloon);
