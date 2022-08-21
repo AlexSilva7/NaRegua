@@ -2,7 +2,7 @@
 {
     public class ProfessionalEvaluation
     {
-        public string Document { get; set; }
+        public string ProfessionalDocument { get; set; }
         public double Evaluation { get; set; }
     }
 }

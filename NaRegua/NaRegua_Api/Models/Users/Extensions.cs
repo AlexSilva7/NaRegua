@@ -23,7 +23,7 @@ namespace NaRegua_Api.Models.Users
         {
             return new SchedulingResponse
             {
-                Resource = input.Resource
+                Resources = input.Resources
             };
         }
     }

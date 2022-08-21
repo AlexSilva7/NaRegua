@@ -14,14 +14,14 @@ namespace NaRegua_Api.Providers.Fakes
 
         public static List<Hairdresser> _hairdressers = new List<Hairdresser>();
 
-        public static List<Dictionary<string, List<DateTime>>> _workAvailabilityHairdressers = 
-            new List<Dictionary<string, List<DateTime>>>();
+        public static Dictionary<string, List<DateTime>> _workAvailabilityHairdressers = 
+            new Dictionary<string, List<DateTime>>();
 
-        public static List<Dictionary<string, Scheduling>> _scheduleAppointment = 
-            new List<Dictionary<string, Scheduling>>();
+        public static Dictionary<string, List<Scheduling>> _scheduleAppointment = 
+            new Dictionary<string, List<Scheduling>>();
 
-        public static List<Dictionary<string, double>> _evaluationAverages =
-            new List<Dictionary<string, double>>();
+        public static Dictionary<string, List<double>> _evaluationAverages =
+            new Dictionary<string, List<double>>();
 
         public HairdresserProviderFake(ISaloonProvider salonProvider)
         {
@@ -101,18 +101,21 @@ namespace NaRegua_Api.Providers.Fakes
                 });
             }
 
-            var document = Validations.FindFirstClaimOfType(principal, "Document");
-
-            var hours = new List<DateTime>();
+            var aux = new List<DateTime>();
             for (var x = availability.StartHour; x < availability.EndHour; x = x.AddHours(1))
             {
-                hours.Add(x);
+                aux.Add(x);
             }
 
-            var dictAvailability = new Dictionary<string, List<DateTime>>();
-            dictAvailability.Add(document, hours);
+            var document = Validations.FindFirstClaimOfType(principal, "Document");
+            _workAvailabilityHairdressers.TryGetValue(document, out var list);
 
-            _workAvailabilityHairdressers.Add(dictAvailability);
+            if (list is null)
+            {
+                list = new List<DateTime>();
+            }
+
+            list.Union(aux);
 
             return Task.FromResult(new GenericResult
             {
@@ -143,41 +146,23 @@ namespace NaRegua_Api.Providers.Fakes
 
         public Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document)
         {
-            string errorMessage = "It was not possible to check the availability of the professional.";
+            _workAvailabilityHairdressers.TryGetValue(document, out var availability);
 
-            var availability = _workAvailabilityHairdressers.Where(x => x.Keys.Contains(document));
-
-            if (availability.Count() == 0)
+            if (availability is null)
             {
                 return Task.FromResult(new ProfessionalAvailabilityResult
                 {
-                    Message = errorMessage,
+                    Message = "It was not possible to check the availability of the professional.",
                     Success = false
                 });
             }
 
-            var list = new List<DateTime>();
-
-            foreach (var item in availability)
-            {
-                var listAux = new List<DateTime>();
-                item.TryGetValue(document, out listAux);
-
-                var listRemove = listAux.Where(x => x.Date < DateTime.Now.Date).ToList();
-
-                for (var x = 0; x < listRemove.Count; x++)
-                {
-                    var dateRemove = listRemove[x];
-                    listAux.Remove(dateRemove);
-                }
-
-                list.AddRange(listAux);
-            }
-
+            availability.RemoveAll(x => x.Date < DateTime.Now.Date);
+            
             return Task.FromResult(new ProfessionalAvailabilityResult
             {
                 Document = document,
-                Resources = list.OrderBy(x => x.Date).Distinct(),
+                Resources = availability.OrderBy(x => x.Date).Distinct(),
                 Success = true
             });
         }
@@ -185,23 +170,12 @@ namespace NaRegua_Api.Providers.Fakes
         public Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(IPrincipal principal)
         {
             var document = Validations.FindFirstClaimOfType(principal, "Document");
-            var appointments = _scheduleAppointment.FindAll(x => x.Keys.Contains(document));
-
-            var result = new List<AppointmentsResult>();
-            foreach(var appointment in appointments)
-            {
-                var scheduling = appointment.GetValueOrDefault(document);
-                result.Add(new AppointmentsResult
-                {
-                    CustomerName = scheduling.CustomerName,
-                    CustomerPhone = scheduling.CustomerPhone,
-                    DateTime = scheduling.DateTime
-                });
-            }
+            _scheduleAppointment.TryGetValue(document, out var appointments);
 
             return Task.FromResult(new AppointmentsListResult
             {
-                Resources = result,
+                Resources = appointments is not null ? appointments.Select(x => x.ToResult()) : 
+                new List<Scheduling>().Select(x => x.ToResult()),
                 Success = true
             });
         }
@@ -212,28 +186,17 @@ namespace NaRegua_Api.Providers.Fakes
             var phone = Validations.FindFirstClaimOfType(principal, "Phone");
 
             //Adiciona compromisso para o profissional
-            var scheduleHairdresser = new Dictionary<string, Scheduling>();
-            scheduleHairdresser.Add(document, new Scheduling
+            _scheduleAppointment.TryGetValue(document, out var list);
+            list?.Add(new Scheduling
             {
                 CustomerName = name,
                 CustomerPhone = phone,
                 DateTime = dateTime
             });
 
-            _scheduleAppointment.Add(scheduleHairdresser);
-
             //Remove horário da lista de disponibilidade
-            var availabilitys = _workAvailabilityHairdressers.FindAll(x => x.Keys.Contains(document));
-            foreach (var availability in availabilitys)
-            {
-                var value = new List<DateTime>();
-                bool hasValue = availability.TryGetValue(document, out value);
-
-                if (hasValue)
-                {
-                    value.Remove(dateTime);
-                }
-            }
+            _workAvailabilityHairdressers.TryGetValue(document, out var availability);
+            availability?.Remove(dateTime);
 
             return Task.FromResult(new GenericResult
             {
@@ -244,16 +207,20 @@ namespace NaRegua_Api.Providers.Fakes
 
         public Task<EvaluationAverageResult> GetEvaluationAverageFromTheProfessional(string document)
         {
-            var evaluations = _evaluationAverages.FindAll(x => x.Keys.Contains(document));
-            var average = 0.0;
-            foreach (var evaluation in evaluations)
+            if(GetHairdressersFromDocument(document) is null)
             {
-                average += evaluation.GetValueOrDefault(document);
+                return Task.FromResult(new EvaluationAverageResult
+                {
+                    Message = "Professional not found.",
+                    Success = false
+                });
             }
 
+            _evaluationAverages.TryGetValue(document, out var evaluations);
+            
             return Task.FromResult(new EvaluationAverageResult
             {
-                Average = average,
+                Average = evaluations is not null ? evaluations.Average() : 0,
                 Success = true
             });
         }
@@ -269,9 +236,17 @@ namespace NaRegua_Api.Providers.Fakes
                 });
             }
 
-            var dict = new Dictionary<string, double>();
-            dict.Add(evaluation.Document, evaluation.Evaluation);
-            _evaluationAverages.Add(dict);
+            if (GetHairdressersFromDocument(evaluation.ProfessionalDocument) is null)
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Message = "Professional not found.",
+                    Success = false
+                });
+            }
+
+            _evaluationAverages.TryGetValue(evaluation.ProfessionalDocument, out var value);
+            value?.Add(evaluation.Evaluation);
 
             return Task.FromResult(new GenericResult
             {
@@ -284,7 +259,7 @@ namespace NaRegua_Api.Providers.Fakes
         {
             if(GetHairdressersList().Where(x => x.Document == document).Count() != 0) 
             {
-                return new RegisteredResult { Message = "Document", Registered = true };
+                return new () { Message = "Document", Registered = true };
             }
 
             if (GetHairdressersList().Where(x => x.Username == username).Count() != 0)

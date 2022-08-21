@@ -4,7 +4,7 @@
     {
         public class SchedulingResponse
         {
-            public IEnumerable<Scheduling> Resource { get; set; }
+            public IEnumerable<Scheduling> Resources { get; set; }
         }
     }
 }

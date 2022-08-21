@@ -5,6 +5,7 @@ using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Users;
 using static NaRegua_Api.Models.Users.Requests;
+using NaRegua_Api.Models.Saloon;
 
 namespace NaRegua_Api.Controllers.V1.Users
 {
@@ -101,7 +102,7 @@ namespace NaRegua_Api.Controllers.V1.Users
                 }
 
                 var response = result.ToResponse();
-                _logger.LogInformation($"UserController::GetAppointmentAsync - {response.Resource}");
+                _logger.LogInformation($"UserController::GetAppointmentAsync - {response.Resources}");
 
                 return Ok(response);
             }
@@ -113,7 +114,39 @@ namespace NaRegua_Api.Controllers.V1.Users
         }
 
         [Authorize]
-        [HttpPost("add-favorite-salon")] //POST /v1/user/add-favorite-salon
+        [HttpGet("favorite-salon")] //POST /v1/user/favorites-salon
+        public async Task<IActionResult> GetFavoriteSaloonsAsync()
+        {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _logger.LogDebug($"UserController::GetFavoriteSaloonsAsync");
+                var result = await _provider.GetUserFavoriteSaloonsAsync(User);
+
+                if (!result.Success)
+                {
+                    _logger.LogError($"UserController::GetFavoriteSaloonsAsync - {result.Message}");
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"UserController::GetFavoriteSaloonsAsync - {response}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("favorite-salon")] //POST /v1/user/favorite-salon
         public async Task<IActionResult> PostSalonAsFavoriteAsync([FromBody] AddFavoriteRequest request)
         {
             if (!Validations.IsCustomer(User))
@@ -134,6 +167,38 @@ namespace NaRegua_Api.Controllers.V1.Users
 
                 var response = result.ToResponse();
                 _logger.LogInformation($"UserController::PostSalonAsFavoriteAsync - {response.Success}");
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpDelete("favorite-salon/{saloonCode}")] //DELETE /v1/user/favorite-salon/xxxx
+        public async Task<IActionResult> RemoveSalonFromFavoritesAsync(string saloonCode)
+        {
+            if (!Validations.IsCustomer(User))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _logger.LogDebug($"UserController::RemoveSalonFromFavoritesAsync");
+                var result = await _provider.RemoveSalonFromFavoritesAsync(User, saloonCode);
+
+                if (!result.Success)
+                {
+                    _logger.LogError($"UserController::RemoveSalonFromFavoritesAsync - {result.Message}");
+                    return BadRequest(result);
+                }
+
+                var response = result.ToResponse();
+                _logger.LogInformation($"UserController::RemoveSalonFromFavoritesAsync - {response.Success}");
 
                 return Ok(response);
             }

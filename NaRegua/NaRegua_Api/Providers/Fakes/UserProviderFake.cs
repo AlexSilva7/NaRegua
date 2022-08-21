@@ -14,8 +14,8 @@ namespace NaRegua_Api.Providers.Fakes
         private readonly ISaloonProvider _saloonProvider;
 
         public static List<User> _users = new List<User>();
-        public static List<Dictionary<string, Scheduling>> _scheduleAppointment = new List<Dictionary<string, Scheduling>>();
-        public static List<Dictionary<string, Saloon>> _userFavoriteSaloons = new List<Dictionary<string, Saloon>>();
+        public static Dictionary<string, List<Scheduling>> _scheduleAppointment = new Dictionary<string, List<Scheduling>>();
+        public static Dictionary<string, List<Saloon>> _userFavoriteSaloons = new Dictionary<string, List<Saloon>>();
 
         public UserProviderFake(IHairdresserProvider hairdresserProvider, ISaloonProvider saloonProvider)
         {
@@ -72,9 +72,8 @@ namespace NaRegua_Api.Providers.Fakes
                     Success = false
                 });
             }
-            var x = dateTime.Date.ToLocalTime();
-            var a = DateTime.Now.Date.ToLocalTime();
-            if (dateTime.Date.ToLocalTime() < DateTime.Now.Date.ToLocalTime())
+
+            if (dateTime < DateTime.Now)
             {
                 return Task.FromResult(new GenericResult
                 {
@@ -96,7 +95,7 @@ namespace NaRegua_Api.Providers.Fakes
             }
 
             var document = Validations.FindFirstClaimOfType(user, "Document");
-            var schedules = GetAppointmentAsync(user).Result.Resource;
+            var schedules = GetAppointmentAsync(user).Result.Resources;
 
             //Verifica se o usuário já tem 4 marcações em 30 dias
             var countSchedules = schedules.Where(x => x.DateTime.Date <= DateTime.Now.AddDays(30)).Count();
@@ -109,19 +108,6 @@ namespace NaRegua_Api.Providers.Fakes
                 });
             }
 
-            //verifica se usuário já tem uma marcação naquele dia
-            foreach (var schedule in schedules)
-            {
-                if (schedule.DateTime.Date == dateTime.Date)
-                {
-                    return Task.FromResult(new GenericResult
-                    {
-                        Message = "User already has a booking today.",
-                        Success = false
-                    });
-                }
-            }
-
             //Remove horário disponível para o profissional e adiciona o compromisso
             _hairdresserProvider.SetAppointmentsFromTheProfessional(user, documentProfessional, dateTime);
 
@@ -129,15 +115,40 @@ namespace NaRegua_Api.Providers.Fakes
             var saloon = _saloonProvider.GetSaloon(hairdresser.SaloonCode);
 
             //Adiciona marcação para o usuário
-            var scheduleUser = new Dictionary<string, Scheduling>();
-            scheduleUser.Add(document, new Scheduling
+            _scheduleAppointment.TryGetValue(document, out var list);
+            if (list is not null)
+            {
+                foreach (var item in list)
+                {
+                    if (item.DateTime.Date == dateTime.Date)
+                    {
+                        return Task.FromResult(new GenericResult
+                        {
+                            Message = "User already has a booking today.",
+                            Success = false
+                        });
+                    }
+                }
+            }
+
+            var scheduling = new Scheduling
             {
                 ProfessionalName = hairdresser.Name,
                 ProfessionalPhone = hairdresser.Phone,
                 SalonAdress = saloon.Address,
                 DateTime = dateTime
-            });
-            _scheduleAppointment.Add(scheduleUser);
+            };
+
+            if (list is null)
+            {
+                list = new List<Scheduling> { scheduling };
+            }
+            else
+            {
+                list.Add(scheduling);
+            }
+
+            _scheduleAppointment.TryAdd(document, list);
 
             return Task.FromResult(new GenericResult
             {
@@ -149,22 +160,11 @@ namespace NaRegua_Api.Providers.Fakes
         public Task<SchedulingResult> GetAppointmentAsync(IPrincipal user)
         {
             var document = Validations.FindFirstClaimOfType(user, "Document");
-            var scheduleList = _scheduleAppointment.FindAll(x => x.Keys.Contains(document));
-
-            var result = new List<Scheduling>();
-            foreach (var schedule in scheduleList)
-            {
-                var value = schedule.GetValueOrDefault(document);
-                if (value.DateTime.Date >= DateTime.Now.Date)
-                {
-                    result.Add(value);
-                }
-            }
+            _scheduleAppointment.TryGetValue(document, out var schedulings);
 
             return Task.FromResult(new SchedulingResult
             {
-                Resource = result,
-                Message = "Appointments",
+                Resources = schedulings is not null ? schedulings.FindAll(x => x.DateTime.Date >= DateTime.Now.Date) : new List<Scheduling>(),
                 Success = true
             });
         }
@@ -178,16 +178,37 @@ namespace NaRegua_Api.Providers.Fakes
             {
                 return Task.FromResult(new GenericResult
                 {
-                    Message = "salon not found.",
+                    Message = "Salon not found.",
                     Success = false
                 });
             }
 
-            var favoriteDict = new Dictionary<string, Saloon>();
-            favoriteDict.Add(document, saloon);
+            _userFavoriteSaloons.TryGetValue(document, out var list);
+            if(list is not null)
+            {
+                foreach (var item in list)
+                {
+                    if (item.SaloonCode == saloonCode)
+                    {
+                        return Task.FromResult(new GenericResult
+                        {
+                            Message = "Salon is already in the favorites list.",
+                            Success = false
+                        });
+                    }
+                }
+            }
 
-            _userFavoriteSaloons.Add(favoriteDict);
+            if (list is null)
+            {
+                list = new List<Saloon> { saloon };
+            }
+            else
+            {
+                list.Add(saloon);
+            }
 
+            _userFavoriteSaloons.TryAdd(document, list);
             return Task.FromResult(new GenericResult
             {
                 Message = "Favorite successfully added.",
@@ -198,18 +219,46 @@ namespace NaRegua_Api.Providers.Fakes
         public Task<ListSaloonsResult> GetUserFavoriteSaloonsAsync(IPrincipal user)
         {
             var document = Validations.FindFirstClaimOfType(user, "Document");
-            var favorites = new List<Saloon>();
-
-            foreach (var saloon in _userFavoriteSaloons)
-            {
-                saloon.TryGetValue(document, out Saloon value);
-                if(value is not null) favorites.Add(value);
-            }
+            _userFavoriteSaloons.TryGetValue(document, out var favorites);
 
             return Task.FromResult(new ListSaloonsResult
             {
-                Resources = favorites.Select(x => x.ToResult()),
+                Resources = favorites is not null ? favorites.Select(x => x.ToResult()) : new List<Saloon>().Select(x => x.ToResult()),
                 Success = true
+            });
+        }
+
+        public Task<GenericResult> RemoveSalonFromFavoritesAsync(IPrincipal user, string saloonCode)
+        {
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+            var saloon = _saloonProvider.GetSaloon(saloonCode);
+
+            if (saloon is null)
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Message = "Salon not found.",
+                    Success = false
+                });
+            }
+
+            _userFavoriteSaloons.TryGetValue(document, out var favorites);
+            if(favorites is not null)
+            {
+                if (favorites.Remove(saloon))
+                {
+                    return Task.FromResult(new GenericResult
+                    {
+                        Message = "Salon successfully removed.",
+                        Success = true
+                    });
+                }
+            }
+
+            return Task.FromResult(new GenericResult
+            {
+                Message = "Salon not found in favorites list.",
+                Success = false
             });
         }
 
