@@ -25,6 +25,8 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         {
             try
             {
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+
                 _logger.LogDebug($"HairdresserController::CreateProfessionalAsync - {request}");
                 var result = await _provider.CreateHairdresserAsync(request.ToDomain());
 
@@ -52,13 +54,12 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         [HttpPost("send-work-availability")] // POST /v1/hairdresser/send-work-availability
         public async Task<IActionResult> SendWorkAvailabilityAsync([FromBody] WorkAvailabilityRequest request)
         {
-            if (Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (Validations.IsCustomer(User)) return NotFound();
+
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+
                 _logger.LogDebug($"HairdresserController::SendWorkAvailability - {request}");
                 var result = await _provider.SendWorkAvailabilityAsync(request.ToDomain(), User);
 
@@ -85,13 +86,10 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         [HttpGet("hairdressers-list/{salonCode}")] // GET /v1/hairdresser/hairdressers-list/057952B
         public async Task<IActionResult> GetHairdressersListOfSalonAsync(string salonCode)
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (!Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"HairdresserController::GetHairdressersListOfSalon - Request: {salonCode}");
                 var result = await _provider.GetHairdressersListOfSalon(salonCode);
 
@@ -118,13 +116,10 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         [HttpGet("professional-availability/{document}")] // GET /v1/hairdresser/professional-availability/65240069707
         public async Task<IActionResult> GetProfessionalAvailability(string document)
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (!Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"HairdresserController::GetProfessionalAvailability - Request: {document}");
                 var result = await _provider.GetProfessionalAvailability(document);
 
@@ -151,13 +146,10 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         [HttpGet("professional-appointments")] // GET /v1/hairdresser/professional-appointments
         public async Task<IActionResult> GetAppointmentsFromTheProfessional()
         {
-            if (Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"HairdresserController::GetAppointmentsFromTheProfessional - Request");
                 var result = await _provider.GetAppointmentsFromTheProfessional(User);
 
@@ -212,13 +204,12 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         [HttpPost("evaluation-average")] // POST /v1/hairdresser/evaluation-average
         public async Task<IActionResult> SendEvaluationAverage([FromBody] ProfessionalEvaluationRequest request)
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (!Validations.IsCustomer(User)) return NotFound();
+
+                if(Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+
                 _logger.LogDebug($"HairdresserController::SendEvaluationAverage - Request: {request}");
                 var result = await _provider.SendEvaluationAverageFromTheProfessional(request.ToDomain());
 

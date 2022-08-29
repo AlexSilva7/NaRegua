@@ -21,17 +21,6 @@ namespace NaRegua_Api.Providers.Fakes
 
         public Task<AuthResult> SignAsync(Auth auth)
         {
-            if(Validations.ChecksIfIsNullProperty(auth))
-            {
-                return Task.FromResult(new AuthResult
-                {
-                    Token = "",
-                    Resources = null,
-                    Message = "Unable to login, incomplete fields",
-                    Success = false
-                });
-            }
-
             if (_userProvider.GetUsersList().Count() == 0 && _hairdresserProvider.GetHairdressersList().Count() == 0)
             {
                 return Task.FromResult(

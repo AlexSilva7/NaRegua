@@ -25,15 +25,6 @@ namespace NaRegua_Api.Providers.Fakes
 
         public Task<GenericResult> CreateUserAsync(User user)
         {
-            if (Validations.ChecksIfIsNullProperty(user))
-            {
-                return Task.FromResult(new GenericResult
-                {
-                    Message = "User cannot be registered, incomplete fields",
-                    Success = false
-                });
-            }
-
             var verify = CheckIfAlreadyRegistered(user.Document, user.Username, user.Email);
             if (verify.Registered)
             {

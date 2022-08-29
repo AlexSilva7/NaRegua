@@ -6,7 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace NaRegua_Api.Providers.Implementations.V1.Token
+namespace NaRegua_Api.Providers.Implementations.Token
 {
     public class TokenProvider : ITokenProvider
     {

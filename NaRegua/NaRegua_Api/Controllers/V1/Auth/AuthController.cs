@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Auth;
 using static NaRegua_Api.Models.Auth.Requests;
 
@@ -22,7 +23,9 @@ namespace NaRegua_Api.Controllers.V1.Auth
         {
             try
             {
-                _logger.LogDebug($"AuthController::SignAsync - Request: {request}");
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+
+               _logger.LogDebug($"AuthController::SignAsync - Request: {request}");
                 var result = await _provider.SignAsync(request.ToDomain());
 
                 if (!result.Success)

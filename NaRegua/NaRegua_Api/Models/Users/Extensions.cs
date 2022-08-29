@@ -1,4 +1,5 @@
 ﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Models.Auth;
 using static NaRegua_Api.Models.Users.Requests;
 using static NaRegua_Api.Models.Users.Responses;
 
@@ -15,7 +16,7 @@ namespace NaRegua_Api.Models.Users
                 Phone = input.Phone,
                 Email = input.Email,
                 Username = input.Username,
-                Password = input.Password
+                Password = Criptograph.HashPass(input.Password)
             };
         }
 

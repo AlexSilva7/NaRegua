@@ -18,6 +18,7 @@ DependencyResolver.SetDependency(services);
 builder.Services.AddRazorPages();
 
 var key = Encoding.ASCII.GetBytes(AppSettings.JwtKey);
+
 services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -36,6 +37,7 @@ services.AddAuthentication(options =>
         ClockSkew = System.TimeSpan.Zero
     };
 });
+
 
 var app = builder.Build();
 

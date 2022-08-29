@@ -26,7 +26,10 @@ namespace NaRegua_Api.Controllers.V1.Users
         {
             try
             {
+                if (Validations.ChecksIfIsNullProperty(user)) return BadRequest(new { Generic.MESSAGE });
+
                 _logger.LogDebug($"UserController::AddUserAsync");
+
                 var result = await _provider.CreateUserAsync(user.ToDomain());
 
                 if (!result.Success)
@@ -52,13 +55,12 @@ namespace NaRegua_Api.Controllers.V1.Users
         [HttpPost("schedule-appointment")] // POST /v1/user/schedule-appointment
         public async Task<IActionResult> ScheduleAppointmentAsync([FromBody] ScheduleAppointmentRequest request)
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+
+                if (!Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"UserController::ScheduleAppointmentAsync");
                 var result = await _provider.ScheduleAppointmentAsync(User, request.DateTime, request.DocumentProfessional);
 
@@ -81,17 +83,14 @@ namespace NaRegua_Api.Controllers.V1.Users
         }
 
         
-        [Authorize]
+        //[Authorize]
         [HttpGet("schedule-appointment")] // GET /v1/user/schedule-appointment
         public async Task<IActionResult> GetAppointmentAsync()
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                //if (!Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"UserController::GetAppointmentAsync");
                 var result = await _provider.GetAppointmentAsync(User);
 
@@ -117,13 +116,10 @@ namespace NaRegua_Api.Controllers.V1.Users
         [HttpGet("favorite-salon")] //POST /v1/user/favorites-salon
         public async Task<IActionResult> GetFavoriteSaloonsAsync()
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (!Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"UserController::GetFavoriteSaloonsAsync");
                 var result = await _provider.GetUserFavoriteSaloonsAsync(User);
 
@@ -149,13 +145,12 @@ namespace NaRegua_Api.Controllers.V1.Users
         [HttpPost("favorite-salon")] //POST /v1/user/favorite-salon
         public async Task<IActionResult> PostSalonAsFavoriteAsync([FromBody] AddFavoriteRequest request)
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (!Validations.IsCustomer(User)) return NotFound();
+
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+
                 _logger.LogDebug($"UserController::PostSalonAsFavoriteAsync");
                 var result = await _provider.AddUserSalonAsFavoriteAsync(User, request.saloonCode);
 
@@ -181,13 +176,10 @@ namespace NaRegua_Api.Controllers.V1.Users
         [HttpDelete("favorite-salon/{saloonCode}")] //DELETE /v1/user/favorite-salon/xxxx
         public async Task<IActionResult> RemoveSalonFromFavoritesAsync(string saloonCode)
         {
-            if (!Validations.IsCustomer(User))
-            {
-                return NotFound();
-            }
-
             try
             {
+                if (!Validations.IsCustomer(User)) return NotFound();
+
                 _logger.LogDebug($"UserController::RemoveSalonFromFavoritesAsync");
                 var result = await _provider.RemoveSalonFromFavoritesAsync(User, saloonCode);
 
