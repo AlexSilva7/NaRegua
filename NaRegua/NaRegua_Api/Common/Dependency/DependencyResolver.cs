@@ -2,7 +2,6 @@
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Providers.Fakes;
 using NaRegua_Api.Providers.Implementations;
-using NaRegua_Api.Providers.Implementations.Token;
 
 namespace NaRegua_Api.Common.Dependency
 {
@@ -14,9 +13,16 @@ namespace NaRegua_Api.Common.Dependency
             if (AppSettings.UseFakeProviders)
             {
                 services.AddSingleton<IUserProvider, UserProvider>();
-                services.AddSingleton<IAuthProvider, AuthProviderFake>();
+                services.AddSingleton<IAuthProvider, AuthProvider>();
                 services.AddSingleton<IHairdresserProvider, HairdresserProviderFake>();
                 services.AddSingleton<ISaloonProvider, SaloonProviderFake>();
+            }
+            else
+            {
+                services.AddSingleton<IUserProvider, UserProvider>();
+                services.AddSingleton<IAuthProvider, AuthProvider>();
+                //services.AddSingleton<IHairdresserProvider, HairdresserProvider>();
+                //services.AddSingleton<ISaloonProvider, SaloonProvider>();
             }
         }
     }

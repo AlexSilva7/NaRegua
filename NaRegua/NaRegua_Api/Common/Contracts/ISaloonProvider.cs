@@ -11,7 +11,7 @@ namespace NaRegua_Api.Common.Contracts
     public class ListSaloonsResult
     {
         public IEnumerable<SaloonResult> Resources { get; set; }
-        public string Message { get; set; }
+        public string? Message { get; set; }
         public bool Success { get; set; }
     }
 
