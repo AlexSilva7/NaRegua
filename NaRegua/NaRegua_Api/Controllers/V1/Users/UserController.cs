@@ -83,13 +83,13 @@ namespace NaRegua_Api.Controllers.V1.Users
         }
 
         
-        //[Authorize]
+        [Authorize]
         [HttpGet("schedule-appointment")] // GET /v1/user/schedule-appointment
         public async Task<IActionResult> GetAppointmentAsync()
         {
             try
             {
-                //if (!Validations.IsCustomer(User)) return NotFound();
+                if (!Validations.IsCustomer(User)) return NotFound();
 
                 _logger.LogDebug($"UserController::GetAppointmentAsync");
                 var result = await _provider.GetAppointmentAsync(User);
