@@ -1,5 +1,4 @@
 ﻿using NaRegua_Api.Common.Contracts;
-using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Models.Auth;
 using NaRegua_Api.Models.Users;
