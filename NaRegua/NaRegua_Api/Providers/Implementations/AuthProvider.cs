@@ -1,19 +1,19 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Models.Auth;
-using NaRegua_Api.Repository.ActiveSessionRepository;
+using NaRegua_Api.Repository.Contracts;
 using NaRegua_Api.Repository.Exceptions;
 
 namespace NaRegua_Api.Providers.Implementations
 {
     public class AuthProvider : IAuthProvider
     {
-        private readonly AuthRepositorySqlServer _database;
+        private readonly IAuthRepository _database;
         private readonly ITokenProvider _tokenProvider;
 
-        public AuthProvider(ITokenProvider tokenProvider)
+        public AuthProvider(ITokenProvider tokenProvider, IAuthRepository authRepository)
         {
-            _database = new AuthRepositorySqlServer();
+            _database = authRepository;
             _tokenProvider = tokenProvider;
         }
 
@@ -27,7 +27,7 @@ namespace NaRegua_Api.Providers.Implementations
                 return new AuthResult
                 {
                     Token = token,
-                    TimeExpireToken = DateTime.UtcNow.AddMinutes(AppSettings.ExpiryDurationMinutes),
+                    TimeExpireToken = DateTime.Now.AddMinutes(AppSettings.ExpiryDurationMinutes),
                     Resources = new UserAuthenticatedResult
                     {
                         Name = user.Name,

@@ -23,16 +23,14 @@ namespace NaRegua_Api.Database
                 using (var conn = CreateConnection())
                 using (var cmd = CreateCommand(conn, query, parameters))
                 {
-                    //var count = 1;
                     var reader = cmd.ExecuteReader();
-                    while (reader.Read()) //&& count < reader.)
+                    while (reader.Read())
                     {
                         for (var x = 0; x < reader.FieldCount; x++)
                         {
                             var data = reader.GetValue(x);
                             response.Add(data);
                         }
-                        //count++;
                     }
                 }
 

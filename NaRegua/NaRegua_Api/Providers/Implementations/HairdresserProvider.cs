@@ -2,31 +2,42 @@
 using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Hairdresser;
-using NaRegua_Api.Repository.ActiveSessionRepository;
+using NaRegua_Api.Repository.Contracts;
+using NaRegua_Api.Repository.Exceptions;
 using System.Security.Principal;
 
 namespace NaRegua_Api.Providers.Implementations
 {
     public class HairdresserProvider : IHairdresserProvider
     {
-        private readonly HairdresserRepositorySqlServer _database;
+        private readonly IHairdresserRepository _database;
 
-        public HairdresserProvider()
+        public HairdresserProvider(IHairdresserRepository hairdresserRepository)
         {
-            _database = new HairdresserRepositorySqlServer();
+            _database = hairdresserRepository;
         }
 
         public async Task<GenericResult> CreateHairdresserAsync(Hairdresser hairdresser)
         {
-            //PRIMARY KEY
-            await _database.InsertHairdresser(hairdresser);
+            try
+            {
+                await _database.InsertHairdresser(hairdresser);
+            }
+            catch (PrimaryKeyException)
+            {
+                return new GenericResult
+                {
+                    Message = "There is already a user registered with this document",
+                    Success = false
+                };
+            }
+
             return new GenericResult { Success = true };
         }
 
         public async Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(IPrincipal principal)
         {
             var document = Validations.FindFirstClaimOfType(principal, "Document");
-
             var appointments = await _database.SelectAppointmentsOfProfessional(document);
 
             return new AppointmentsListResult
@@ -37,9 +48,14 @@ namespace NaRegua_Api.Providers.Implementations
             };
         }
 
-        public Task<EvaluationAverageResult> GetEvaluationAverageFromTheProfessional(string document)
+        public async Task<EvaluationAverageResult> GetEvaluationAverageFromTheProfessional(string document)
         {
-            throw new NotImplementedException();
+            var average = await _database.SelectEvaluationAverage(document);
+            return new EvaluationAverageResult
+            {
+                Average = average,
+                Success = true
+            };
         }
 
         public Hairdresser GetHairdressersFromDocument(string document)
@@ -52,24 +68,66 @@ namespace NaRegua_Api.Providers.Implementations
             throw new NotImplementedException();
         }
 
-        public Task<ListHairdresserResult> GetHairdressersListOfSalon(string salonCode)
+        public async Task<ListHairdresserResult> GetHairdressersListOfSalon(string salonCode)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document)
+        public async Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document)
         {
-            throw new NotImplementedException();
+            var availabilitys = await _database.SelectProfessionalAvailability(document);
+
+            return new ProfessionalAvailabilityResult
+            {
+                Document = document,
+                Resources = availabilitys,
+                Success = true
+            };
         }
 
-        public Task<GenericResult> SendEvaluationAverageFromTheProfessional(ProfessionalEvaluation evaluation)
+        public async Task<GenericResult> SendEvaluationAverageFromTheProfessional(ProfessionalEvaluation evaluation)
         {
-            throw new NotImplementedException();
+            await _database.InsertEvaluationAverage(evaluation.ProfessionalDocument, evaluation.Evaluation);
+
+            return new GenericResult
+            {
+                Success = true
+            };
         }
 
-        public Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal)
+        public async Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal)
         {
-            throw new NotImplementedException();
+            if (availability.EndHour.Date != availability.StartHour.Date)
+            {
+                return new GenericResult
+                {
+                    Message = "Incorrect time, different start and end data",
+                    Success = false
+                };
+            }
+
+            if ((availability.EndHour - availability.StartHour).Hours < 0)
+            {
+                return new GenericResult
+                {
+                    Message = "Incorrect Time",
+                    Success = false
+                };
+            }
+
+            var aux = new List<DateTime>();
+            for (var x = availability.StartHour; x < availability.EndHour; x = x.AddHours(1))
+            {
+                aux.Add(x);
+            }
+
+            var document = Validations.FindFirstClaimOfType(principal, "Document");
+            await _database.InsertWorkAvailability(document, aux);
+
+            return new GenericResult
+            {
+                Success = true
+            };
         }
 
         public Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime)

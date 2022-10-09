@@ -1,0 +1,35 @@
+﻿namespace NaRegua_Api.Repository.SQLServer.ActiveSessionRepository
+{
+    public class HairdresserRepository : HairdresserRepositorySQLServer
+    {
+        protected override string INSERT_HAIRDRESSER =>
+            "INSERT INTO [USERS] VALUES (@NAME, @DOCUMENT, @EMAIL, @PHONE, @USERNAME, @PASSWORD, @ISCUSTOMER)";
+
+        protected override string INSERT_HAIRDRESSER_SALOON =>
+            "INSERT INTO [HAIRDRESSERS_SALOON] VALUES (@DOCUMENT, @SALOON_CODE)";
+
+        protected override string INSERT_WORK_AVAILABILITY =>
+            "INSERT INTO [AVAILABILITY_PROFESSIONALS] VALUES (@PROFESSIONAL_DOCUMENT, @DATETIME)";
+
+        protected override string SELECT_HAIRDRESSERS_BY_SALOON =>
+            "SELECT DISTINCT B.NAME, B.DOCUMENT, B.PHONE, " +
+            "B.EMAIL, A.SALOON_CODE " +
+            "FROM [HAIRDRESSERS_SALOON] AS A " +
+            "LEFT JOIN [USERS] AS B " +
+            "ON A.DOCUMENT = B.DOCUMENT WHERE SALOON_CODE = @CODE";
+
+        protected override string SELECT_HAIRDRESSERS_AVAILABILITY =>
+            "SELECT DISTINCT DATETIME FROM [AVAILABILITY_PROFESSIONALS] WHERE PROFESSIONAL_DOCUMENT = @DOCUMENT";
+
+        protected override string SELECT_HAIRDRESSERS_APPOINTMENTS =>
+            "SELECT DISTINCT * FROM [SCHEDULING_PROFESSIONALS] WHERE PROFESSIONAL_DOCUMENT = @DOCUMENT";
+
+        protected override string SELECT_HAIRDRESSERS_EVALUATION_AVERAGE =>
+            "SELECT AVG(EVALUATION) " +
+            "FROM [EVALUATION_AVERAGES_PROFESSIONALS] WHERE PROFESSIONAL_DOCUMENT = @DOCUMENT " +
+            "GROUP BY PROFESSIONAL_DOCUMENT";
+
+        protected override string INSERT_HAIRDRESSERS_EVALUATION_AVERAGE =>
+            "INSERT INTO [EVALUATION_AVERAGES_PROFESSIONALS] VALUES (@DOCUMENT, @EVALUATION)";
+    }
+}

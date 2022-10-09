@@ -5,17 +5,17 @@ using System.Security.Principal;
 using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Repository.Exceptions;
-using NaRegua_Api.Repository.ActiveSessionRepository;
+using NaRegua_Api.Repository.Contracts;
 
 namespace NaRegua_Api.Providers.Implementations
 {
     public class UserProvider : IUserProvider
     {
-        private readonly UserRepositorySqlServer _database;
+        private readonly IUserRepository _database;
 
-        public UserProvider()
+        public UserProvider(IUserRepository userRepository)
         {
-            _database = new UserRepositorySqlServer();
+            _database = userRepository;
         }
 
         public async Task<GenericResult> AddUserSalonAsFavoriteAsync(IPrincipal user, string saloonCode)
@@ -35,7 +35,15 @@ namespace NaRegua_Api.Providers.Implementations
 
         public async Task<GenericResult> CreateUserAsync(User user)
         {
-            await _database.InsertUser(user);
+            try
+            {
+                await _database.InsertUser(user);
+            }
+            catch (PrimaryKeyException ex)
+            {
+                return new GenericResult { Success = false, Message = ex.Message};
+            }
+
             return new GenericResult { Success = true };
         }
 

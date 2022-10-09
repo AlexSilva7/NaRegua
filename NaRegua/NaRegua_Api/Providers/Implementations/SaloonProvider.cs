@@ -1,16 +1,16 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Models.Saloon;
-using NaRegua_Api.Repository.ActiveSessionRepository;
+using NaRegua_Api.Repository.Contracts;
 
 namespace NaRegua_Api.Providers.Implementations
 {
     public class SaloonProvider : ISaloonProvider
     {
-        private readonly SaloonRepositorySqlServer _database;
+        private readonly ISaloonRepository _database;
 
-        public SaloonProvider()
+        public SaloonProvider(ISaloonRepository saloonRepository)
         {
-            _database = new SaloonRepositorySqlServer();
+            _database = saloonRepository;
         }
 
         public Saloon GetSaloon(string saloonCode)
