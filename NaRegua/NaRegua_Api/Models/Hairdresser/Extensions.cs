@@ -1,4 +1,5 @@
 ﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Models.Auth;
 using static NaRegua_Api.Models.Hairdresser.Requests;
 using static NaRegua_Api.Models.Hairdresser.Responses;
 
@@ -15,7 +16,7 @@ namespace NaRegua_Api.Models.Hairdresser
                 Phone = input.Phone,
                 Email = input.Email,
                 Username = input.Username,
-                Password = input.Password,
+                Password = Criptograph.HashPass(input.Password),
                 SaloonCode = input.SaloonCode
             };
         }
@@ -56,6 +57,7 @@ namespace NaRegua_Api.Models.Hairdresser
             {
                 Name = input.Name,
                 Document = input.Document,
+                Phone = input.Phone,
                 Email = input.Email,
                 SaloonCode = input.SaloonCode,
                 IsCustomer = input.IsCustomer

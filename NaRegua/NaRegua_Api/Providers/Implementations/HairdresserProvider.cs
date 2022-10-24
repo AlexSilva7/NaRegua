@@ -21,13 +21,16 @@ namespace NaRegua_Api.Providers.Implementations
         {
             try
             {
+                if (!await _database.VerifySaloon(hairdresser.SaloonCode))
+                    return new GenericResult { Message = "Saloon not found.", Success = false };
+
                 await _database.InsertHairdresser(hairdresser);
             }
-            catch (PrimaryKeyException)
+            catch (PrimaryKeyException ex)
             {
                 return new GenericResult
                 {
-                    Message = "There is already a user registered with this document",
+                    Message = ex.Message,
                     Success = false
                 };
             }
@@ -70,7 +73,14 @@ namespace NaRegua_Api.Providers.Implementations
 
         public async Task<ListHairdresserResult> GetHairdressersListOfSalon(string salonCode)
         {
-            throw new NotImplementedException();
+            var hairdresserList = await _database.SelectHairdressersListOfSalon(salonCode);
+
+            return new ListHairdresserResult
+            {
+                Resources = hairdresserList is not null ? hairdresserList.Select(x => x.ToResult()) : 
+                new List<Hairdresser>().Select(x => x.ToResult()),
+                Success = true
+            };
         }
 
         public async Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document)
@@ -97,6 +107,15 @@ namespace NaRegua_Api.Providers.Implementations
 
         public async Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal)
         {
+            if (availability.StartHour.Date < DateTime.Now.Date)
+            {
+                return new GenericResult
+                {
+                    Message = "Incorrect date",
+                    Success = false
+                };
+            }
+
             if (availability.EndHour.Date != availability.StartHour.Date)
             {
                 return new GenericResult

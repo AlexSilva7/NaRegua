@@ -31,7 +31,6 @@
         public class AppointmentsResponse
         {
             public string CustomerName { get; set; }
-            public string CustomerDocument { get; set; }
             public string CustomerPhone { get; set; }
             public DateTime Scheduling { get; set; }
         }
