@@ -23,7 +23,7 @@ namespace NaRegua_Api.Controllers.V1.Auth
         {
             try
             {
-                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
                _logger.LogDebug($"AuthController::SignAsync - Request: {request}");
                 var result = await _provider.SignAsync(request.ToDomain());

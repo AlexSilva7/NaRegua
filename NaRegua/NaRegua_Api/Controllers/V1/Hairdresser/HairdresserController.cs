@@ -25,7 +25,9 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         {
             try
             {
-                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+                if (request.ChecksIfIsNullProperty()) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
+                if (!request.Document.VerifyIfIsValidCpf()) return BadRequest(new { GenericMessage.INVALID_DOCUMENT });
+                if (!request.Email.VerifyIfIsValidEmail()) return BadRequest(new { GenericMessage.INVALID_EMAIL });
 
                 _logger.LogDebug($"HairdresserController::CreateProfessionalAsync - {request}");
                 var result = await _provider.CreateHairdresserAsync(request.ToDomain());
@@ -58,7 +60,7 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
             {
                 if (Validations.IsCustomer(User)) return NotFound();
 
-                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
                 _logger.LogDebug($"HairdresserController::SendWorkAvailability - {request}");
                 var result = await _provider.SendWorkAvailabilityAsync(request.ToDomain(), User);
@@ -208,7 +210,7 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
             {
                 if (!Validations.IsCustomer(User)) return NotFound();
 
-                if(Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+                if(Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
                 _logger.LogDebug($"HairdresserController::SendEvaluationAverage - Request: {request}");
                 var result = await _provider.SendEvaluationAverageFromTheProfessional(request.ToDomain());

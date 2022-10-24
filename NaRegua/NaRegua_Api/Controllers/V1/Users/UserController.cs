@@ -22,15 +22,17 @@ namespace NaRegua_Api.Controllers.V1.Users
         }
 
         [HttpPost] // POST /v1/user
-        public async Task<IActionResult> CreateUserAsync([FromBody] UserRequest user)
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserRequest request)
         {
             try
             {
-                if (Validations.ChecksIfIsNullProperty(user)) return BadRequest(new { Generic.MESSAGE });
+                if (request.ChecksIfIsNullProperty()) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
+                if (!request.Document.VerifyIfIsValidCpf()) return BadRequest(new { GenericMessage.INVALID_DOCUMENT });
+                if (!request.Email.VerifyIfIsValidEmail()) return BadRequest(new { GenericMessage.INVALID_EMAIL });
 
                 _logger.LogDebug($"UserController::AddUserAsync");
 
-                var result = await _provider.CreateUserAsync(user.ToDomain());
+                var result = await _provider.CreateUserAsync(request.ToDomain());
 
                 if (!result.Success)
                 {
@@ -57,7 +59,7 @@ namespace NaRegua_Api.Controllers.V1.Users
         {
             try
             {
-                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
                 if (!Validations.IsCustomer(User)) return NotFound();
 
@@ -149,7 +151,7 @@ namespace NaRegua_Api.Controllers.V1.Users
             {
                 if (!Validations.IsCustomer(User)) return NotFound();
 
-                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { Generic.MESSAGE });
+                if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
                 _logger.LogDebug($"UserController::PostSalonAsFavoriteAsync");
                 var result = await _provider.AddUserSalonAsFavoriteAsync(User, request.saloonCode);
