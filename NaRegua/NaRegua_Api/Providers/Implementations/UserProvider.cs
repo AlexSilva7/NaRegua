@@ -6,6 +6,7 @@ using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Repository.Exceptions;
 using NaRegua_Api.Repository.Contracts;
+using System.Security.Claims;
 
 namespace NaRegua_Api.Providers.Implementations
 {
@@ -22,11 +23,11 @@ namespace NaRegua_Api.Providers.Implementations
         {
             var document = Validations.FindFirstClaimOfType(user, "Document");
 
-            if(await _database.VerifySaloon(saloonCode)) 
-                return new GenericResult { Message = "Saloon not found.", Success = false };
-
             if (await _database.CheckIfItIsAlreadyInTheFavoritesList(document, saloonCode))
                 return new GenericResult { Message = "Saloon is already in the favorites list.", Success = false };
+
+            if (!await _database.VerifySaloon(saloonCode)) 
+                return new GenericResult { Message = "Saloon not found.", Success = false };
 
             await _database.AddSaloonAsFavorite(document, saloonCode);
 
@@ -79,7 +80,14 @@ namespace NaRegua_Api.Providers.Implementations
         public async Task<GenericResult> RemoveSalonFromFavoritesAsync(IPrincipal user, string saloonCode)
         {
             var document = Validations.FindFirstClaimOfType(user, "Document");
-            await _database.DeleteSalonFromFavorites(document, saloonCode);
+            try
+            {
+                await _database.DeleteSalonFromFavorites(document, saloonCode);
+            }
+            catch (Exception ex)
+            {
+                return new GenericResult { Success = false, Message = ex.Message };
+            }
 
             return new GenericResult { Success = true };
         }
@@ -95,11 +103,13 @@ namespace NaRegua_Api.Providers.Implementations
                 };
             }
 
-            var document = Validations.FindFirstClaimOfType(user, "Document");
+            var document = user.FindFirstClaimOfType("Document");
+            var name = user.FindFirstClaimOfType(ClaimTypes.Name);
+            var phone = user.FindFirstClaimOfType("Phone");
 
             try
             {
-                await _database.InsertScheduleAppointment(document, dateTime, documentProfessional);
+                await _database.InsertScheduleAppointment(document, name, phone, dateTime, documentProfessional);
             }
             catch (CannotScheduleException ex)
             {
