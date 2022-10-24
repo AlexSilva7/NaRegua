@@ -21,6 +21,7 @@ namespace NaRegua_Api.Repository.SQLServer
         protected abstract string SELECT_AVAILABILITY_AND_INFOs_FROM_PROFESSIONAL { get; }
         protected abstract string INSERT_SCHEDULING_USER { get; }
         protected abstract string SELECT_USER_FROM_USERNAME { get; }
+        protected abstract string INSERT_SCHEDULING_FROM_PROFESSIONAL { get; }
 
         public async Task<bool> VerifySaloon(string saloonCode)
         {
@@ -30,7 +31,7 @@ namespace NaRegua_Api.Repository.SQLServer
                     {"@CODE", saloonCode }
                 });
 
-            if (!verifySaloon.Any()) return true;
+            if (verifySaloon.Any()) return true;
 
             return false;
         }
@@ -169,12 +170,12 @@ namespace NaRegua_Api.Repository.SQLServer
                 });
         }
 
-        public async Task InsertScheduleAppointment(string documentUser, DateTime dateTime, string documentProfessional)
+        public async Task InsertScheduleAppointment(string documentUser, string nameUser, string phoneUser, DateTime dateTime, string documentProfessional)
         {
             var count = await ExecuteReader(SELECT_COUNT_SCHEDULING_USER,
                 new Dictionary<string, object>
                 {
-                    {"@USER_DOCUMENT", "15" }
+                    {"@USER_DOCUMENT", documentUser }
                 });
 
             if(int.Parse(count.First().ToString()) > 4)
@@ -199,7 +200,16 @@ namespace NaRegua_Api.Repository.SQLServer
                     {"@PROFESSIONAL_DOCUMENT", documentProfessional },
                     {"@DATE", dateTime }
                 });
-                
+
+               await ExecuteNonQuery(INSERT_SCHEDULING_FROM_PROFESSIONAL,
+               new Dictionary<string, object>
+               {
+                    {"@PROFESSIONAL_DOCUMENT", documentProfessional },
+                    {"@CLIENT_NAME", nameUser },
+                    {"@CLIENT_PHONE", phoneUser },
+                    {"@DATE", dateTime }
+               });
+
                 await ExecuteNonQuery(INSERT_SCHEDULING_USER,
                 new Dictionary<string, object>
                 {

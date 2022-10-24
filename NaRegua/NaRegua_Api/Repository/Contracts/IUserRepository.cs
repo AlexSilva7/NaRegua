@@ -11,7 +11,7 @@ namespace NaRegua_Api.Repository.Contracts
         Task<IEnumerable<Scheduling>?> SelectAppointmentsOfUser(string document);
         Task<IEnumerable<Saloon>?> SelectUserFavoriteSaloons(string document);
         Task DeleteSalonFromFavorites(string document, string saloonCode);
-        Task InsertScheduleAppointment(string documentUser, DateTime dateTime, string documentProfessional);
+        Task InsertScheduleAppointment(string documentUser, string nameUser, string phoneUser, DateTime dateTime, string documentProfessional);
         Task AddSaloonAsFavorite(string userDocument, string saloonCode);
     }
 }

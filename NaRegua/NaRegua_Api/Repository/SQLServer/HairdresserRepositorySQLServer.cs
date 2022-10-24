@@ -16,11 +16,24 @@ namespace NaRegua_Api.Repository.SQLServer
         protected abstract string SELECT_HAIRDRESSERS_APPOINTMENTS { get; }
         protected abstract string SELECT_HAIRDRESSERS_EVALUATION_AVERAGE { get; }
         protected abstract string INSERT_HAIRDRESSERS_EVALUATION_AVERAGE { get; }
+        protected abstract string SELECT_SALOONS_CODE { get; }
+        protected abstract string SELECT_USER_FROM_USERNAME { get; }
 
         public async Task InsertHairdresser(Hairdresser hairdresser)
         {
             try
             {
+                var username = await ExecuteReader(SELECT_USER_FROM_USERNAME,
+                new Dictionary<string, object>
+                {
+                    {"@USERNAME", hairdresser.Username },
+                });
+
+                if (username.Any())
+                {
+                    throw new PrimaryKeyException("User already registered with this username");
+                }
+
                 await ExecuteNonQuery(INSERT_HAIRDRESSER,
                 new Dictionary<string, object>
                 {
@@ -56,7 +69,7 @@ namespace NaRegua_Api.Repository.SQLServer
             var schedulings = await ExecuteReader(SELECT_HAIRDRESSERS_APPOINTMENTS,
                 new Dictionary<string, object>
                 {
-                    {"@DOCUMENT_PROFISSIONAL", document }
+                    {"@DOCUMENT", document }
                 });
 
             if (!schedulings.Any()) return null;
@@ -88,7 +101,7 @@ namespace NaRegua_Api.Repository.SQLServer
                 await ExecuteNonQuery(INSERT_WORK_AVAILABILITY,
                 new Dictionary<string, object>
                 {
-                    {"@DOCUMENT_PROFISSIONAL", document },
+                    {"@DOCUMENT", document },
                     {"@DATETIME",  dateTime }
                 });
             }
@@ -166,6 +179,19 @@ namespace NaRegua_Api.Repository.SQLServer
                     {"@DOCUMENT", document },
                     {"@EVALUATION", evaluation }
                 });
+        }
+
+        public async Task<bool> VerifySaloon(string saloonCode)
+        {
+            var verifySaloon = await ExecuteReader(SELECT_SALOONS_CODE,
+                new Dictionary<string, object>
+                {
+                    {"@CODE", saloonCode }
+                });
+
+            if (verifySaloon.Any()) return true;
+
+            return false;
         }
     }
 }

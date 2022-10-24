@@ -11,5 +11,6 @@ namespace NaRegua_Api.Repository.Contracts
         Task<IEnumerable<DateTime>> SelectProfessionalAvailability(string document);
         Task<double> SelectEvaluationAverage(string document);
         Task InsertEvaluationAverage(string document, double evaluation);
+        Task<bool> VerifySaloon(string saloonCode);
     }
 }
