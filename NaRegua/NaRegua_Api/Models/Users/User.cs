@@ -1,13 +1,23 @@
-﻿namespace NaRegua_Api.Models.Users
+﻿using Google.Cloud.Firestore;
+
+namespace NaRegua_Api.Models.Users
 {
+    [FirestoreData]
     public class User
     {
+        [FirestoreProperty]
         public string Name { get; set; }
+        [FirestoreProperty]
         public string Document { get; set; }
+        [FirestoreProperty]
         public string Email { get; set; }
+        [FirestoreProperty]
         public string Phone { get; set; }
+        [FirestoreProperty]
         public string Username { get; set; }
+        [FirestoreProperty]
         public string Password { get; set; }
-        public bool IsCustomer = true;
+        [FirestoreProperty]
+        public bool IsCustomer { get; set; } = true;
     }
 }

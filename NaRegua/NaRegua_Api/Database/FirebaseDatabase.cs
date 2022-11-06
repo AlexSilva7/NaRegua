@@ -6,81 +6,134 @@ namespace NaRegua_Api.Database
 {
     public class FirebaseDatabase : IDatabase
     {
-        private readonly FirestoreDb _fireStoreDb;
         private readonly string _configDb;
         private readonly string _projectId;
 
         public FirebaseDatabase()
         {
-            _configDb = "react-lista-de-tarefas-firebase-adminsdk-xewbt-bfc7a92eb9.json";
+            _configDb = "NaReguaApiFirebase.json";
             Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", _configDb);
+
             _projectId = "react-lista-de-tarefas";
-            _fireStoreDb = FirestoreDb.Create(_projectId);
         }
 
-        [FirestoreData]
-        public class Aluno
+        protected virtual async Task<FirestoreDb> CreateConnectionAsync()
         {
-            //public string AlunoId { get; set; }
-            [FirestoreProperty]
-            public string Nome { get; set; }
-            [FirestoreProperty]
-            public string Email { get; set; }
-            [FirestoreProperty]
-            public string Cidade { get; set; }
-            [FirestoreProperty]
-            public string Sexo { get; set; }
+            var connection = await FirestoreDb.CreateAsync(_projectId);
+            return connection;
         }
 
         public async Task ExecuteNonQuery(string query, Dictionary<string, object> parameters)
         {
-            //DocumentReference docRef = fireStoreDb.Collection("alunos").Document(id); // 1 aluno
-            //DocumentReference docRef = fireStoreDb.Collection("alunos").Document(id);
-            //DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
-            //if (snapshot.Exists)
-            //{
-            //    Aluno aluno = snapshot.ConvertTo<Aluno>();
-            //    aluno.AlunoId = snapshot.Id;
-            //    return aluno;
-            //}
-            var aluno = new Aluno
+            var collection = parameters?.Where(x => x.Key == "collection").First();
+            var document = parameters?.Where(x => x.Key == "documentFirebase").First();
+            var content = parameters?.Where(x => x.Key == "object").First();
+
+            if(query == "insert")
             {
-                Nome = "alex",
-                Email = "x",
-                Cidade = "x"
-            };
-            //CollectionReference colRef = _fireStoreDb.Collection("users");
-            //await colRef.Document("novoUser").SetAsync(user);
-            //await colRef.Document("novoUser").CreateAsync(user);
-            //await colRef.AddAsync(user);
-
-            CollectionReference colRef = _fireStoreDb.Collection("users");
-            await colRef.AddAsync(aluno);
-
-            Query alunoQuery = _fireStoreDb.Collection("users");
-            Query alunQuery = _fireStoreDb.Collection("user");
-            Query alunQuerys = _fireStoreDb.Collection("tasks");
-
-            QuerySnapshot alunoQuerySnapshot = await alunoQuery.GetSnapshotAsync();
-
-            foreach (DocumentSnapshot documentSnapshot in alunoQuerySnapshot.Documents)
-            {
-                if (documentSnapshot.Exists)
+                using (var conn = CreateConnectionAsync())
                 {
-                    Dictionary<string, object> city = documentSnapshot.ToDictionary();
-                    string json = JsonConvert.SerializeObject(city);
-                    //Aluno novoAluno = JsonConvert.DeserializeObject<Aluno>(json);
-                    //novoAluno.AlunoId = documentSnapshot.Id;
-                    //listaAluno.Add(novoAluno);
+                    DocumentReference docRef =
+                        conn.Result.Collection(collection?.Value.ToString()).Document(document?.Value.ToString());
+
+                    await docRef.CreateAsync(content?.Value);
+                }
+            }
+        }
+
+        public async Task<List<object>> ExecuteReader(string? query, Dictionary<string, object>? parameters)
+        {
+            var response = new List<object>();
+
+            var collection = parameters?.Where(x => x.Key == "collection").First();
+            var document = parameters?.Where(x => x.Key == "documentFirebase").First();
+            var parameter = parameters?.Where(x => x.Key != "collection" && x.Key != "documentFirebase");
+
+            using (var conn = CreateConnectionAsync())
+            {
+                DocumentReference comand = 
+                    conn.Result.Collection(collection?.Value.ToString()).Document(document?.Value.ToString());
+
+                var snapshot = await comand.GetSnapshotAsync();
+                var result = snapshot.ToDictionary();
+
+                if (parameter.Any())
+                {
+                    foreach (var param in parameter)
+                    {
+                        var objs = result.Where(x => x.Key == param.Key);
+                        foreach (var obj in objs)
+                        {
+                            var json = JsonConvert.SerializeObject(result);
+                            response.Add(json);
+                        }
+                    }
+                }
+                else
+                {
+                    var json = JsonConvert.SerializeObject(result);
+                    response.Add(json);
                 }
             }
 
-            throw new NotImplementedException();
-        }
-
-        public Task<List<object>> ExecuteReader(string query, Dictionary<string, object>? parameters)
-        {
-            throw new NotImplementedException();
+            return response;
         }
     }
 }
+
+
+
+//DocumentReference docRef = fireStoreDb.Collection("alunos").Document(id); // 1 aluno
+//DocumentReference docRef = fireStoreDb.Collection("alunos").Document(id);
+//DocumentSnapshot snapshot = await docRef.GetSnapshotAsync();
+//if (snapshot.Exists)
+//{
+//    Aluno aluno = snapshot.ConvertTo<Aluno>();
+//    aluno.AlunoId = snapshot.Id;
+//    return aluno;
+//}
+//var aluno = new Aluno
+//{
+//    Nome = "Otto",
+//    Email = "x",
+//    Cidade = "x",
+//    Sexo = "M"
+//};
+//CollectionReference colRef = _fireStoreDb.Collection("users");
+//await colRef.Document("novoUser").SetAsync(user);
+//await colRef.Document("novoUser").CreateAsync(user);
+//await colRef.AddAsync(user);
+
+//esse
+//DocumentReference docRef = _fireStoreDb.Collection("users").Document("hahaha");
+//await docRef.CreateAsync(aluno);
+//ate aqui
+
+
+//CollectionReference colRef = _fireStoreDb.Collection("users");
+//await colRef.AddAsync(docRef);
+//await colRef.AddAsync(aluno);
+
+//Query alunoQuery = _fireStoreDb.Collection("users");
+//DocumentReference alunQuery = _fireStoreDb.Collection("users").Document("hahaha");
+
+//QuerySnapshot alunoQuerySnapshot = await alunoQuery.GetSnapshotAsync();
+
+
+//var x = await alunQuery.GetSnapshotAsync();
+//Dictionary<string, object> cidade = x.ToDictionary();
+//string jsono = JsonConvert.SerializeObject(cidade);
+//Aluno novoAluno2 = JsonConvert.DeserializeObject<Aluno>(jsono);
+
+//var listaAluno = new List<Aluno>();
+//foreach (DocumentSnapshot documentSnapshot in alunoQuerySnapshot.Documents)
+//{
+//    if (documentSnapshot.Exists)
+//    {
+//        Dictionary<string, object> city = documentSnapshot.ToDictionary();
+//        string json = JsonConvert.SerializeObject(city);
+//        Aluno novoAluno = JsonConvert.DeserializeObject<Aluno>(json);
+//        //novoAluno.Nome = documentSnapshot.Id;
+//        listaAluno.Add(novoAluno);
+//    }
+//}

@@ -3,6 +3,7 @@ using NaRegua_Api.Configurations;
 using NaRegua_Api.Providers.Fakes;
 using NaRegua_Api.Providers.Implementations;
 using NaRegua_Api.Repository.Contracts;
+using NaRegua_Api.Repository.Firebase;
 using NaRegua_Api.Repository.SQLServer.ActiveSessionRepository;
 
 namespace NaRegua_Api.Common.Dependency
@@ -26,6 +27,13 @@ namespace NaRegua_Api.Common.Dependency
                 {
                     services.AddSingleton<IAuthRepository, AuthRepository>();
                     services.AddSingleton<IUserRepository, UserRepository>();
+                    services.AddSingleton<IHairdresserRepository, HairdresserRepository>();
+                    services.AddSingleton<ISaloonRepository, SaloonRepository>();
+                }
+                else
+                {
+                    services.AddSingleton<IAuthRepository, AuthRepositoryFirebase>();
+                    services.AddSingleton<IUserRepository, UserRepositoryFirebase>();
                     services.AddSingleton<IHairdresserRepository, HairdresserRepository>();
                     services.AddSingleton<ISaloonRepository, SaloonRepository>();
                 }
