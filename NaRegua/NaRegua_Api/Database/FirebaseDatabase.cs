@@ -1,5 +1,4 @@
 ﻿using Google.Cloud.Firestore;
-using NaRegua_Api.Models.Users;
 using Newtonsoft.Json;
 
 namespace NaRegua_Api.Database
@@ -25,56 +24,169 @@ namespace NaRegua_Api.Database
 
         public async Task ExecuteNonQuery(string query, Dictionary<string, object> parameters)
         {
-            var collection = parameters?.Where(x => x.Key == "collection").First();
-            var document = parameters?.Where(x => x.Key == "documentFirebase").First();
-            var content = parameters?.Where(x => x.Key == "object").First();
+            var collection = parameters?.Where(x => x.Key == "collection").First().Value.ToString();
+            var document = parameters?.Where(x => x.Key == "documentFirebase").First().Value.ToString();
+            var content = parameters?.Where(x => x.Key == "content").First().Value;
 
-            if(query == "insert")
+            if (query == "insert")
             {
                 using (var conn = CreateConnectionAsync())
                 {
-                    DocumentReference docRef =
-                        conn.Result.Collection(collection?.Value.ToString()).Document(document?.Value.ToString());
+                    var docRef = conn.Result.Collection(collection).Document(document);
 
-                    await docRef.CreateAsync(content?.Value);
+                    await docRef.CreateAsync(content);
+                }
+            }
+
+            if(query == "update")
+            {
+                using (var conn = CreateConnectionAsync())
+                {
+                    var docRef = conn.Result.Collection(collection).Document(document);
+
+                    await docRef.CreateAsync(content);
+
+                    //await docRef.UpdateAsync(content);
                 }
             }
         }
 
-        public async Task<List<object>> ExecuteReader(string? query, Dictionary<string, object>? parameters)
+        public async Task<List<object>> ExecuteReader(string? query, Dictionary<string, object> parameters)
         {
             var response = new List<object>();
 
-            var collection = parameters?.Where(x => x.Key == "collection").First();
-            var document = parameters?.Where(x => x.Key == "documentFirebase").First();
-            var parameter = parameters?.Where(x => x.Key != "collection" && x.Key != "documentFirebase");
+            var collection = parameters?.Where(x => x.Key == "collection");
+            var document = parameters?.Where(x => x.Key == "documentFirebase");
+            var parameter = parameters?.Where(x => x.Key != "collection" && x.Key != "documentFirebase").ToList();
 
             using (var conn = CreateConnectionAsync())
             {
-                DocumentReference comand = 
-                    conn.Result.Collection(collection?.Value.ToString()).Document(document?.Value.ToString());
-
-                var snapshot = await comand.GetSnapshotAsync();
-                var result = snapshot.ToDictionary();
-
-                if (parameter.Any())
+                if (document?.FirstOrDefault().Value is not null)
                 {
-                    foreach (var param in parameter)
+                    var colRef = conn.Result.Collection(collection?.First().Value.ToString());
+                    var querySnapshot = await colRef.GetSnapshotAsync();
+
+                    var docRef = 
+                        conn.Result.Collection(collection?.First().Value.ToString())
+                                   .Document(document.First().Value.ToString());
+
+                    var snapshot = await docRef.GetSnapshotAsync();
+                    var obj = snapshot.ToDictionary();
+
+                    if(obj is not null)
                     {
-                        var objs = result.Where(x => x.Key == param.Key);
-                        foreach (var obj in objs)
-                        {
-                            var json = JsonConvert.SerializeObject(result);
-                            response.Add(json);
-                        }
+                        response.Add(JsonConvert.SerializeObject(obj));
                     }
                 }
                 else
                 {
-                    var json = JsonConvert.SerializeObject(result);
-                    response.Add(json);
+                    var colRef = conn.Result.Collection(collection?.First().Value.ToString());
+                    var querySnapshot = await colRef.GetSnapshotAsync();
+
+                    foreach (var documentSnapshot in querySnapshot.Documents)
+                    {
+                        if (documentSnapshot.Exists)
+                        {
+                            var objects = documentSnapshot.ToDictionary();
+
+                            foreach (var p in parameter)
+                            {
+                                if (objects.ContainsKey(p.Key))
+                                {
+                                    var obj = objects.Where(x => x.Key == p.Key).FirstOrDefault();
+
+                                    if (obj.Value.ToString() == p.Value.ToString())
+                                    {
+                                        var json = JsonConvert.SerializeObject(objects);
+                                        response.Add(json);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+            //var querySnapshot = await colRef.GetSnapshotAsync();
+
+            //using (var conn = CreateConnectionAsync())
+            //{
+            //    if (!(document?.FirstOrDefault().Value == null))
+            //    {
+            //        var collectionList = collection?.ToList();
+            //        var documentList = document.ToList();
+            //        var comand = new object();
+
+            //        if (collectionList?.Count != documentList.Count)
+            //        {
+            //            for (var x = 0; x < collectionList?.Count; x++)
+            //            {
+            //                if (x == 0)
+            //                {
+            //                    comand =
+            //                        conn.Result.Collection(collectionList[x].Value.ToString()).Document(document.ToList()[0].Value.ToString());
+            //                }
+            //                else
+            //                {
+            //                    comand =
+            //                        conn.Result.Collection(collectionList[x].Value.ToString());
+            //                }
+            //            }
+            //        }
+
+            //        //var snapshot = await comand.GetSnapshotAsync();
+            //        //var result = snapshot.ToDictionary();
+            //        var result = query;
+
+            //        if(result is null)  return response;
+
+            //        if (parameter.Any())
+            //        {
+            //            foreach (var param in parameter)
+            //            {
+            //                //var objs = result.Where(x => x.Key == param.Key);
+            //                //foreach (var obj in objs)
+            //                //{
+            //                //    var json = JsonConvert.SerializeObject(result);
+            //                //    response.Add(json);
+            //                //}
+            //            }
+            //        }
+            //        else
+            //        {
+            //            var json = JsonConvert.SerializeObject(result);
+            //            response.Add(json);
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //var colRef = conn.Result.Collection(collection?.Value.ToString());
+            //        //var querySnapshot = await colRef.GetSnapshotAsync();
+
+            //        //foreach (var documentSnapshot in querySnapshot.Documents)
+            //        //{
+            //        //    if (documentSnapshot.Exists)
+            //        //    {
+            //        //        var objects = documentSnapshot.ToDictionary();
+
+            //        //        foreach (var p in parameter)
+            //        //        {
+            //        //            if (objects.ContainsKey(p.Key))
+            //        //            {
+            //        //                var obj = objects.Where(x => x.Key == p.Key).FirstOrDefault();
+
+            //        //                if (obj.Value.ToString() == p.Value.ToString())
+            //        //                {
+            //        //                    var json = JsonConvert.SerializeObject(objects);
+            //        //                    response.Add(json);
+            //        //                    return response;
+            //        //                }
+            //        //            }
+            //        //        }
+            //        //    }
+            //        //}
+            //    }
+            //}
 
             return response;
         }

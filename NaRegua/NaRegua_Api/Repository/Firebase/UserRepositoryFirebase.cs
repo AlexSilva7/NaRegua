@@ -11,14 +11,50 @@ namespace NaRegua_Api.Repository.Firebase
     {
         private const string COLLECTION = "users";
 
-        public Task AddSaloonAsFavorite(string userDocument, string saloonCode)
+        public async Task AddSaloonAsFavorite(string userDocument, string saloonCode)
         {
-            throw new NotImplementedException();
+            var saloonQuery = await ExecuteReader(null,
+                new Dictionary<string, object>
+                {
+                    {"collection", "saloons"},
+                    {"documentFirebase", saloonCode}
+                });
+
+            var saloon = JsonConvert.DeserializeObject<Saloon>(saloonQuery[0].ToString());
+            saloon.SaloonCode = saloonCode;
+
+            var favorites = await SelectUserFavoriteSaloons(userDocument);
+
+            var saloons = new SaloonList();
+            saloons.Saloons = new List<Saloon>();
+
+            var favoritesToList = favorites?.ToList() ?? saloons.Saloons;
+            favoritesToList.Add(saloon);
+
+            await ExecuteNonQuery("update",
+                new Dictionary<string, object>
+                {
+                    {"collection", "users_favorites_saloons"},
+                    {"documentFirebase", userDocument},
+                    {"content", favoritesToList.ToHashSet()}
+                });
         }
 
-        public Task<bool> CheckIfItIsAlreadyInTheFavoritesList(string userDocument, string saloonCode)
+        public async Task<bool> CheckIfItIsAlreadyInTheFavoritesList(string userDocument, string saloonCode)
         {
-            throw new NotImplementedException();
+            var favorites = await SelectUserFavoriteSaloons(userDocument);
+
+            if (favorites is null) return false;
+
+            foreach (var saloon in favorites)
+            {
+                if (saloon.SaloonCode == saloonCode)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public Task DeleteSalonFromFavorites(string document, string saloonCode)
@@ -94,34 +130,35 @@ namespace NaRegua_Api.Repository.Firebase
             var saloons = await ExecuteReader(null,
                 new Dictionary<string, object>
                 {
-                    {"@USER_DOCUMENT", document }
+                    {"collection", "user_favorite_saloons" },
+                    {"documentFirebase", document}
                 });
 
             if (!saloons.Any()) return null;
 
-            var saloonsList = new List<Saloon>();
-            var count = saloons.Count;
+            var obj = JsonConvert.DeserializeObject<SaloonCodeParser>(saloons[0].ToString());
+            var response = obj?.Saloons;
 
-            for (var x = 0; x < (count / 4); x++)
-            {
-                var saloon = new Saloon
-                {
-                    SaloonCode = saloons[0].ToString(),
-                    Address = saloons[1].ToString(),
-                    Name = saloons[2].ToString(),
-                    Contact = saloons[3].ToString()
-                };
-
-                saloonsList.Add(saloon);
-                saloons.RemoveRange(0, 4);
-            }
-
-            return saloonsList.Distinct();
+            return response;
         }
 
-        public Task<bool> VerifySaloon(string saloonCode)
+        public async Task<bool> VerifySaloon(string saloonCode)
         {
-            throw new NotImplementedException();
+            var saloon = await ExecuteReader(null,
+                new Dictionary<string, object>
+                {
+                    {"collection", "saloons" },
+                    {"documentFirebase", saloonCode}
+                });
+
+            if(saloon.Any()) return true;
+
+            return false;
+        }
+
+        private class SaloonCodeParser
+        {
+            public IEnumerable<Saloon>? Saloons { get; set; }
         }
     }
 }
