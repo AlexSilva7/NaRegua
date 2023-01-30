@@ -14,8 +14,7 @@ namespace NaRegua_Api.Repository.Firebase
                 new Dictionary<string, object>
                 {
                     {"collection", "users"},
-                    {"documentFirebase", username},
-                    {"Username", username }
+                    {"username", username }
                 });
 
             if (!infosUser.Any())

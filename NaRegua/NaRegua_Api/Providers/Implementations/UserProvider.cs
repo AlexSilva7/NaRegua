@@ -13,6 +13,7 @@ namespace NaRegua_Api.Providers.Implementations
     public class UserProvider : IUserProvider
     {
         private readonly IUserRepository _database;
+        private string GenericMessage = "We were unable to process your request";
 
         public UserProvider(IUserRepository userRepository)
         {

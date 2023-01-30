@@ -26,6 +26,7 @@ namespace NaRegua_Api.Providers.Fakes
         public HairdresserProviderFake(ISaloonProvider salonProvider)
         {
             _saloonProvider = salonProvider;
+            InsertsFakes();
         }
 
         public Hairdresser GetHairdressersFromDocument(string document)
@@ -284,6 +285,98 @@ namespace NaRegua_Api.Providers.Fakes
         {
             public string Message { get; set; }
             public bool Registered { get; set; }
+        }
+
+        private void InsertsFakes()
+        {
+            RegisterProfessionalFake("Jose Ribeiro Gomes", "48280663061", "teste@gmail.com", "(21) 99999-9999",
+                "teste1", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+
+            RegisterProfessionalFake("Willian Souza", "92849257036", "teste@gmail.com", "(21) 00000-0000",
+                "teste2", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+
+            RegisterProfessionalFake("Carlos Alberto Dominguez", "64730188080", "teste@gmail.com", "(21) 11111-1111",
+                "teste3", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+
+            RegisterProfessionalFake("Jefferson Laureano", "34125497036", "teste@gmail.com", "(21) 99999-9999",
+                "teste4", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+
+            RegisterProfessionalFake("Damiao Neves", "56599247008", "teste@gmail.com", "(21) 99999-9999", "teste5",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "978C50");
+
+            RegisterProfessionalFake("Lucas Silva", "33587139032", "teste@gmail.com", "(21) 99999-9999",
+                "teste6", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "978C50");
+
+            RegisterProfessionalFake("Roberto Goncalves", "70623372002", "teste@gmail.com", "(21) 99999-9999", "teste7",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "978C50");
+
+            RegisterProfessionalFake("Aldamir Ribeiro", "99005221097", "teste@gmail.com", "(21) 99999-9999", "teste8",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+
+            RegisterProfessionalFake("Alex Silva", "12699068012", "teste@gmail.com", "(21) 99999-9999", "teste9",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+
+            RegisterProfessionalFake("Otto Monteiro", "86379180001", "teste@gmail.com", "(21) 99999-9999", "teste10",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+
+            RegisterProfessionalFake("Ricardo Souza", "94838570074", "teste@gmail.com", "(21) 99999-9999", "teste11",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+
+            RegisterProfessionalFake("Joao Davi", "51542937035", "teste@gmail.com", "(21) 99999-9999", "teste12",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+
+            RegisterProfessionalFake("Tiago Alves", "59321302026", "teste@gmail.com", "(21) 99999-9999", "teste13",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+
+            RegisterProfessionalFake("Dj Ed", "90376065044", "teste@gmail.com", "(21) 99999-9999", "teste14",
+                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "011Z79");
+
+            RegisterAvailabilityProfessionalsFake("48280663061");
+            RegisterAvailabilityProfessionalsFake("92849257036");
+            RegisterAvailabilityProfessionalsFake("34125497036");
+            RegisterAvailabilityProfessionalsFake("56599247008");
+            RegisterAvailabilityProfessionalsFake("33587139032");
+            RegisterAvailabilityProfessionalsFake("90376065044");
+            RegisterAvailabilityProfessionalsFake("59321302026");
+            RegisterAvailabilityProfessionalsFake("51542937035");
+        }
+
+        private void RegisterProfessionalFake(string name, string document, string email, string phone, 
+            string username, string password, string code)
+        {
+            _hairdressers.Add(new Hairdresser
+            {
+                Name = name,
+                Document = document,
+                Phone = phone,
+                Email = email,
+                Username = username,
+                Password = password,
+                SaloonCode = code,
+                IsCustomer = true
+            });
+        }
+            
+        private void RegisterAvailabilityProfessionalsFake(string document)
+        {
+            _workAvailabilityHairdressers.TryGetValue(document, out var aux);
+
+            if (aux is null) aux = new List<DateTime>();
+
+            for (var x = 1; x < 6; x++)
+            {
+                var tomorrow = DateTime.Now.AddDays(x);
+
+                var startTime = new DateTime(tomorrow.Year, tomorrow.Month, tomorrow.Day, 08, 00, 00);
+                var endTime = startTime.AddHours(9);
+
+                for (var y = startTime; y <= endTime; y = y.AddHours(1))
+                {
+                    aux.Add(y);
+                }
+            }
+
+            _workAvailabilityHairdressers.Add(document, aux);
         }
     }
 }
