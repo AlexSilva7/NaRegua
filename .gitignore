@@ -43,3 +43,26 @@ Thumbs.db
 Resource.designer.cs
 
 NaRegua/.vs
+
+
+# dependencies
+naregua-webapp/node_modules
+naregua-webapp/.pnp
+naregua-webapp/.pnp.js
+
+# testing
+naregua-webapp/coverage
+
+# production
+naregua-webapp/build
+
+# misc
+naregua-webapp/.DS_Store
+naregua-webapp/.env.local
+naregua-webapp/.env.development.local
+naregua-webapp/.env.test.local
+naregua-webapp/.env.production.local
+
+naregua-webapp/npm-debug.log*
+naregua-webapp/yarn-debug.log*
+naregua-webapp/yarn-error.log*
