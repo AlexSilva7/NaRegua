@@ -1,6 +1,5 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Common.Validations;
-using NaRegua_Api.Models.Auth;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Models.Users;
@@ -34,8 +33,6 @@ namespace NaRegua_Api.Providers.Fakes
                     Success = false
                 });
             }
-
-            user.Password = Criptograph.HashPass(user.Password);
 
             _users.Add(user);
 
