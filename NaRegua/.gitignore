@@ -1,0 +1,68 @@
+#Autosave files
+*~
+
+#build
+[Oo]bj/
+[Bb]in/
+packages/
+TestResults/
+
+# globs
+Makefile.in
+*.DS_Store
+*.sln.cache
+*.suo
+*.cache
+*.pidb
+*.userprefs
+*.usertasks
+config.log
+config.make
+config.status
+aclocal.m4
+install-sh
+autom4te.cache/
+*.user
+*.tar.gz
+tarballs/
+test-results/
+Thumbs.db
+
+#Mac bundle stuff
+*.dmg
+*.app
+
+#resharper
+*_Resharper.*
+*.Resharper
+
+#dotCover
+*.dotCover
+
+.vs
+Resource.designer.cs
+
+NaRegua/.vs
+
+
+# dependencies
+naregua-webapp/node_modules
+naregua-webapp/.pnp
+naregua-webapp/.pnp.js
+
+# testing
+naregua-webapp/coverage
+
+# production
+naregua-webapp/build
+
+# misc
+naregua-webapp/.DS_Store
+naregua-webapp/.env.local
+naregua-webapp/.env.development.local
+naregua-webapp/.env.test.local
+naregua-webapp/.env.production.local
+
+naregua-webapp/npm-debug.log*
+naregua-webapp/yarn-debug.log*
+naregua-webapp/yarn-error.log*

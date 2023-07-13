@@ -5,7 +5,7 @@ namespace NaRegua_Api.Models.Auth
 {
     public static class Criptograph
     {
-        private static RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
+        private static readonly RNGCryptoServiceProvider rngCsp = new RNGCryptoServiceProvider();
 
         public static string HashKey(string key)
         {
