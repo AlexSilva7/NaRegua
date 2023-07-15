@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NaRegua_Api.Common.Dependency;
 using NaRegua_Api.Configurations;
+using NaRegua_Api.Controllers.V1.Criptograph;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,6 +59,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseMiddleware<EncryptionMiddleware>();
 app.UseRouting();
 
 app.UseCors(x => x
