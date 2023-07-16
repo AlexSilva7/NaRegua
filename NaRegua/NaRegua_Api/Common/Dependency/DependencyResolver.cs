@@ -37,6 +37,7 @@ namespace NaRegua_Api.Common.Dependency
                     services.AddSingleton<IHairdresserRepository, HairdresserRepository>();
                     services.AddSingleton<ISaloonRepository, SaloonRepository>();
                 }
+
                 services.AddSingleton<IUserProvider, UserProvider>();
                 services.AddSingleton<IAuthProvider, AuthProvider>();
                 services.AddSingleton<IHairdresserProvider, HairdresserProvider>();

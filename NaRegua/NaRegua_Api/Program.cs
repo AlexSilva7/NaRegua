@@ -10,21 +10,16 @@ builder.Logging.AddLog4Net("log4net.config");
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
-
-var configuration = builder.Configuration;
-var services = builder.Services;
-
-services.AddCors();
-
-AppSettings.SetConfig(configuration);
-DependencyResolver.SetDependency(services);
-
+builder.Services.AddCors();
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+AppSettings.SetConfig(builder.Configuration);
+DependencyResolver.SetDependency(builder.Services);
+
 var key = Encoding.ASCII.GetBytes(AppSettings.JwtKey);
 
-services.AddAuthentication(options =>
+builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -39,7 +34,7 @@ services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = false,
         ValidateAudience = false,
-        ClockSkew = System.TimeSpan.Zero
+        ClockSkew = TimeSpan.Zero
     };
 });
 
