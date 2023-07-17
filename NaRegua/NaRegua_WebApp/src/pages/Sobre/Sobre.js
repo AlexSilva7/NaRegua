@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { AuthContext } from '../common/authentication/AuthProvider';
+import { AuthContext } from '../../common/authentication/AuthProvider'
+import '../../styles/bootstrap.min.css';
 
 const Sobre = () => {
     const { token } = useContext(AuthContext);
