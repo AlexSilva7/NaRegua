@@ -2,16 +2,18 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
 import logo from '../../assets/maquina-de-cortar-cabelo.png'
+import './Header.css'
 
 const Header = (props) => {
     return (
         <header>
             <nav className="navbar navbar-expand navbar-light bg-warning">
-                <a href="#" className="navbar-brand">
-                    <img src={logo} width="45" />
-                </a>
-                <p className="pt-3">NaRegua</p>
                 <div className="container">
+                    <a href="#" className="navbar-brand">
+                        <img src={logo} width="45" />
+                    </a>
+                    <p className="pt-3 display-4 text-white header-text-logo">NaRegua</p>
+                
                     <button className="navbar-toggler" data-toggle="collapse" data-target="#nav-principal">
                         <span className="navbar-toggler-icon"></span>
                     </button>
