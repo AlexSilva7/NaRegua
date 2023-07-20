@@ -1,0 +1,13 @@
+.announcement-title {
+    font-size: 3em;
+}
+
+@media screen and (max-width: 767px) {
+    .announcement-title {
+        font-size: 2.3em;
+    }
+
+    .announcement {
+        padding-bottom: 10px;
+    }
+}

@@ -16,7 +16,7 @@ const Footer = () => {
                         <a href="https://github.com/AlexSilva7" className="btn btn-outline-dark">
                             <i className="fab fa-github"></i>
                         </a>
-                        <a href="" className="btn btn-outline-dark ml-2">
+                        <a href="https://www.linkedin.com/in/alexs-araujo/" className="btn btn-outline-dark ml-2">
                             <i className="fab fa-linkedin"></i>
                         </a>
                     </div>
