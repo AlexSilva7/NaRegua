@@ -3,6 +3,8 @@ footer {
     position: relative;
     bottom: 0;
     left: 0;
+    border-top: 1px solid #e5e5e5;
+    padding-top: 20px;
 }
 
 .footer-paragraph {

@@ -10,9 +10,9 @@ const Benefits = (props) => {
             <div className="container">
                 <div className="row">
                     {
-                        props.propertiesBenefits.map(item => (
-                            <div className="col-md-4">
-                                <img src= { item.image } className="img-fluid" />
+                        props.propertiesBenefits.map((item, index) => (
+                            <div key={ index } className="col-md-4">
+                                <img src={ item.image } className="img-fluid" />
                                 <h4>{ item.title }</h4>
                                 <p>
                                     { item.paragraph }

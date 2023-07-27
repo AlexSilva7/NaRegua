@@ -21,10 +21,10 @@ const Header = (props) => {
                     <div className="collapse navbar-collapse" id="nav-principal">
                         <ul className="navbar-nav ml-auto">
                             <li className="nav-item">
-                                <a href="" className="nav-link">{props.links[0]}</a>
+                                <a href="/" className="nav-link">{props.links[0]}</a>
                             </li>
                             <li className="nav-item">
-                                <a href="" className="nav-link">{props.links[1]}</a>
+                                <a href="/register" className="nav-link">{props.links[1]}</a>
                             </li>
                             { props.links[2] != null ?
                                 <li className="nav-item">
@@ -33,7 +33,6 @@ const Header = (props) => {
                             : null} 
                         </ul>
                     </div>
-
                 </div>
             </nav>
         </header>
