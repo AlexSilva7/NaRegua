@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+  rbmq:
+    image: rabbitmq:3-management
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - 5672:5672  # Porta para a comunicação AMQP (clientes)
+      - 15672:15672  # Porta para o RabbitMQ Management Plugin (interface web)
+    volumes:
+      - ./rabbitmq/data:/var/lib/rabbitmq  # Para persistir dados (se necessário)
+    networks:  # Adicione esta seção para especificar a rede
+      - naregua_rabbitmq_network
+  
+  python_worker:
+    build:
+      context: ./MockPaymentGateway  # Caminho para a pasta do projeto Python
+    restart: always
+    container_name: python_worker
+    links:
+      - rbmq
+    depends_on:
+      - rbmq  # Especifica que este serviço depende do RabbitMQ para funcionar
+    networks:
+      - naregua_rabbitmq_network
+   
+  naregua_api:
+    build:
+      context: ./NaRegua_Api  # Caminho para a pasta do projeto ASP.NET
+    container_name: aspnet_api
+    restart: always
+    links:
+      - rbmq
+    ports:
+      - 8000:80  # Porta para acessar a API ASP.NET
+    depends_on:
+      - rbmq  # Especifica que este serviço depende do RabbitMQ para funcionar
+    networks:
+      - naregua_rabbitmq_network
+
+networks:
+  naregua_rabbitmq_network:
+    driver: bridge

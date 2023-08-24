@@ -1,4 +1,5 @@
 ﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Auth;
 using NaRegua_Api.Models.Generics;
@@ -181,7 +182,7 @@ namespace NaRegua_Api.Providers.Fakes
             });
         }
 
-        public Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime)
+        public Task<GenericResult> SetAppointmentsFromTheProfessional(string orderId, IPrincipal principal, string document, DateTime dateTime)
         {
             var name = Validations.FindFirstClaimOfType(principal, ClaimTypes.Name);
             var phone = Validations.FindFirstClaimOfType(principal, "Phone");
@@ -190,9 +191,11 @@ namespace NaRegua_Api.Providers.Fakes
             _scheduleAppointment.TryGetValue(document, out var list);
             list?.Add(new Scheduling
             {
+                OrderId = orderId,
                 CustomerName = name,
                 CustomerPhone = phone,
-                DateTime = dateTime
+                DateTime = dateTime,
+                OrderStatus = OrderStatus.PendingPayment
             });
 
             //Remove horário da lista de disponibilidade

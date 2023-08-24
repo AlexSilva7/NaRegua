@@ -149,7 +149,7 @@ namespace NaRegua_Api.Providers.Implementations
             };
         }
 
-        public Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime)
+        public Task<GenericResult> SetAppointmentsFromTheProfessional(string orderId, IPrincipal principal, string document, DateTime dateTime)
         {
             throw new NotImplementedException();
         }

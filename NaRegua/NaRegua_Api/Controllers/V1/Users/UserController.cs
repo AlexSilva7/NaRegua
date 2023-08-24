@@ -6,6 +6,9 @@ using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Users;
 using static NaRegua_Api.Models.Users.Requests;
 using NaRegua_Api.Models.Saloon;
+using NaRegua_Api.Common.Enums;
+using NaRegua_Api.QueueService;
+using Newtonsoft.Json;
 
 namespace NaRegua_Api.Controllers.V1.Users
 {
@@ -14,11 +17,13 @@ namespace NaRegua_Api.Controllers.V1.Users
     {
         private readonly ILogger<UserController> _logger;
         private readonly IUserProvider _provider;
+        private readonly IQueueService _queueService;
 
-        public UserController(ILogger<UserController> logger, IUserProvider provider)
+        public UserController(ILogger<UserController> logger, IUserProvider provider, IQueueService queueService)
         {
             _logger = logger;
             _provider = provider;
+            _queueService = queueService;
         }
 
         [HttpPost] // POST /v1/user
@@ -51,7 +56,6 @@ namespace NaRegua_Api.Controllers.V1.Users
                 return Problem(ex.Message);
             }
         }
-
         
         [Authorize]
         [HttpPost("schedule-appointment")] // POST /v1/user/schedule-appointment
@@ -60,6 +64,8 @@ namespace NaRegua_Api.Controllers.V1.Users
             try
             {
                 if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
+
+                if (request.PaymentType != PaymentType.Credit && request.PaymentType != PaymentType.Pix) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
                 if (!Validations.IsCustomer(User)) return NotFound();
 
@@ -71,6 +77,12 @@ namespace NaRegua_Api.Controllers.V1.Users
                     _logger.LogError($"UserController::ScheduleAppointmentAsync - {result.Message}");
                     return BadRequest(result);
                 }
+
+                //Enviar para Fila de Pagamentos
+                var x = result;
+                x.Message = "ALEX ENVIOU UMA MENSAGEM";
+                var messageJson = JsonConvert.SerializeObject(x);
+                _queueService.PublishMessage(messageJson);
 
                 var response = result.ToResponse();
                 _logger.LogInformation("UserController::ScheduleAppointmentAsync");

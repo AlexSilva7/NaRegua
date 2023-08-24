@@ -14,6 +14,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NaRegua_Api_Tests", "NaRegu
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "naregua_webapp", "NaRegua_WebApp\naregua_webapp.esproj", "{8210E1E1-6F77-4841-8DE2-B2F466601402}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Itens de Solução", "Itens de Solução", "{D71F086B-251F-4FD2-806E-99460BE65240}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

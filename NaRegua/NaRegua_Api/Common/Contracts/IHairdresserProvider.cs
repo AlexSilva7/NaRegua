@@ -13,7 +13,7 @@ namespace NaRegua_Api.Common.Contracts
         Task<GenericResult> SendWorkAvailabilityAsync(WorkAvailability availability, IPrincipal principal);
         Task<ProfessionalAvailabilityResult> GetProfessionalAvailability(string document);
         Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(IPrincipal principal);
-        Task<GenericResult> SetAppointmentsFromTheProfessional(IPrincipal principal, string document, DateTime dateTime);
+        Task<GenericResult> SetAppointmentsFromTheProfessional(string orderId, IPrincipal principal, string document, DateTime dateTime);
         Task<EvaluationAverageResult> GetEvaluationAverageFromTheProfessional(string document);
         Task<GenericResult> SendEvaluationAverageFromTheProfessional(ProfessionalEvaluation evaluation);
     }

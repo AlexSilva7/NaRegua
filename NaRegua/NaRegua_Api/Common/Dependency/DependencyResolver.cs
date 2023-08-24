@@ -2,6 +2,7 @@
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Providers.Fakes;
 using NaRegua_Api.Providers.Implementations;
+using NaRegua_Api.QueueService;
 using NaRegua_Api.Repository.Contracts;
 using NaRegua_Api.Repository.Firebase;
 using NaRegua_Api.Repository.SQLServer.ActiveSessionRepository;
@@ -13,7 +14,8 @@ namespace NaRegua_Api.Common.Dependency
         public static void SetDependency(IServiceCollection services)
         {
             services.AddSingleton<ITokenProvider, TokenProvider>();
-            
+            services.AddSingleton<IQueueService, RabbitMQService>();
+
             if (AppSettings.UseFakeProviders)
             {
                 services.AddSingleton<IUserProvider, UserProviderFake>();

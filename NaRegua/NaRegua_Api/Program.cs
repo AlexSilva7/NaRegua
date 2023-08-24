@@ -54,7 +54,7 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseMiddleware<EncryptionMiddleware>();
+//app.UseMiddleware<EncryptionMiddleware>();
 app.UseRouting();
 
 app.UseCors(x => x

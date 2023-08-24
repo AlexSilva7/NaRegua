@@ -4,6 +4,7 @@ using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Models.Users;
 using System.Security.Principal;
+using static Google.Cloud.Firestore.V1.StructuredQuery.Types;
 
 namespace NaRegua_Api.Providers.Fakes
 {
@@ -96,12 +97,6 @@ namespace NaRegua_Api.Providers.Fakes
                 });
             }
 
-            //Remove horário disponível para o profissional e adiciona o compromisso
-            _hairdresserProvider.SetAppointmentsFromTheProfessional(user, documentProfessional, dateTime);
-
-            var hairdresser = _hairdresserProvider.GetHairdressersFromDocument(documentProfessional);
-            var saloon = _saloonProvider.GetSaloon(hairdresser.SaloonCode);
-
             //Adiciona marcação para o usuário
             _scheduleAppointment.TryGetValue(document, out var list);
             if (list is not null)
@@ -119,8 +114,14 @@ namespace NaRegua_Api.Providers.Fakes
                 }
             }
 
+            var hairdresser = _hairdresserProvider.GetHairdressersFromDocument(documentProfessional);
+            var saloon = _saloonProvider.GetSaloon(hairdresser.SaloonCode);
+
+            var orderId = Guid.NewGuid().ToString();
+
             var scheduling = new Scheduling
             {
+                OrderId = orderId,
                 ProfessionalName = hairdresser.Name,
                 ProfessionalPhone = hairdresser.Phone,
                 SalonAdress = saloon.Address,
@@ -136,14 +137,17 @@ namespace NaRegua_Api.Providers.Fakes
                 list.Add(scheduling);
             }
 
+            //Remove horário disponível para o profissional e adiciona o compromisso
+            _hairdresserProvider.SetAppointmentsFromTheProfessional(orderId, user, documentProfessional, dateTime);
+
             _scheduleAppointment.TryAdd(document, list);
 
             return Task.FromResult(new GenericResult
             {
-                Message = "Appointment made.",
+                Message = orderId,
                 Success = true
             });
-        }
+        } 
 
         public Task<SchedulingResult> GetAppointmentAsync(IPrincipal user)
         {

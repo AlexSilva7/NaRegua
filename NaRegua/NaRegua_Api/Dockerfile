@@ -7,10 +7,11 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["NaRegua_Api/NaRegua_Api.csproj", "NaRegua_Api/"]
+COPY ["NaRegua_Api.csproj", "NaRegua_Api/"]
 RUN dotnet restore "NaRegua_Api/NaRegua_Api.csproj"
+
+WORKDIR "/src/NaRegua_Api/"
 COPY . .
-WORKDIR "/src/NaRegua_Api"
 RUN dotnet build "NaRegua_Api.csproj" -c Release -o /app/build
 
 FROM build AS publish

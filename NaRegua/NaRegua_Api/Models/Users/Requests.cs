@@ -1,4 +1,6 @@
-﻿namespace NaRegua_Api.Models.Users
+﻿using NaRegua_Api.Common.Enums;
+
+namespace NaRegua_Api.Models.Users
 {
     public class Requests
     {
@@ -16,6 +18,7 @@
         {
             public string DocumentProfessional { get; set; }
             public DateTime DateTime { get; set; }
+            public PaymentType PaymentType { get; set; }
         }
 
         public class AddFavoriteRequest
