@@ -1,6 +1,9 @@
 # Define a imagem base que será usada
 FROM python:3.9
 
+# Crie a pasta /app/logs dentro do container
+RUN mkdir -p /app/logs
+
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /app
 

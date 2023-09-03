@@ -7,6 +7,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_QUEUE_DEFINITIONS: '[{"name":"QueueOrder","vhost":"/"}]'
     ports:
       - 5672:5672  # Porta para a comunicação AMQP (clientes)
       - 15672:15672  # Porta para o RabbitMQ Management Plugin (interface web)
@@ -14,12 +15,23 @@ services:
       - ./rabbitmq/data:/var/lib/rabbitmq  # Para persistir dados (se necessário)
     networks:  # Adicione esta seção para especificar a rede
       - naregua_rabbitmq_network
+      
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379  # Porta padrão do Redis
+    networks:  # Adicione esta seção para especificar a rede
+      - naregua_rabbitmq_network
   
   python_worker:
     build:
-      context: ./MockPaymentGateway  # Caminho para a pasta do projeto Python
+      context: ./PythonQueueConsumer  # Caminho para a pasta do projeto Python
     restart: always
     container_name: python_worker
+    volumes:
+      - ./logs:/app/logs
     links:
       - rbmq
     depends_on:

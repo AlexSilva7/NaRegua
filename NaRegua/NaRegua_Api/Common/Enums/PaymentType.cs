@@ -2,7 +2,7 @@
 {
     public enum PaymentType
     {
-        Credit = 1,
-        Pix = 2
+        Pix = 1,
+        Credit = 2
     }
 }

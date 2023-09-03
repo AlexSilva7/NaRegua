@@ -30,7 +30,6 @@ namespace NaRegua_Api.QueueService
             }
             catch (Exception)
             {
-                // A fila não existe, então vamos criá-la
                 //_channel.ExchangeDeclare("ExchangeOrder", ExchangeType.Direct);
                 _channel.QueueDeclare("QueueOrder", durable: true, exclusive: false, autoDelete: false);
                 //_channel.QueueBind("QueueOrder", "ExchangeOrder", "QueueOrder", null);

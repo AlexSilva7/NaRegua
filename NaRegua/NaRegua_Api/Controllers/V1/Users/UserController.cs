@@ -78,11 +78,20 @@ namespace NaRegua_Api.Controllers.V1.Users
                     return BadRequest(result);
                 }
 
+                var i = new SendOrder();
+                i.OrderId = Guid.NewGuid().ToString();
+                i.PaymentType = PaymentType.Pix;
+
                 //Enviar para Fila de Pagamentos
-                var x = result;
-                x.Message = "ALEX ENVIOU UMA MENSAGEM";
-                var messageJson = JsonConvert.SerializeObject(x);
+
+                var messageJson = JsonConvert.SerializeObject(i);
                 _queueService.PublishMessage(messageJson);
+
+                var p = new RedisService.RedisService("host.docker.internal:6379,ssl=False,abortConnect=False");
+
+                //p.SetString(i.OrderId, "O CARA");
+
+                var n = p.GetString(i.OrderId);
 
                 var response = result.ToResponse();
                 _logger.LogInformation("UserController::ScheduleAppointmentAsync");
@@ -213,6 +222,12 @@ namespace NaRegua_Api.Controllers.V1.Users
                 _logger.LogError(ex.ToString());
                 return Problem(ex.Message);
             }
+        }
+
+        public class SendOrder
+        {
+            public string OrderId { get; set; }
+            public PaymentType PaymentType { get; set; }
         }
     }
 }
