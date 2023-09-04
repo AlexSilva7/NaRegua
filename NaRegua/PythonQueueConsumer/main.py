@@ -6,13 +6,13 @@ from Services.MockPaymentGateway import MockPaymentGateway
 
 LoggerInfo = ConfigureLogger('info', logging.INFO)
 LoggerError = ConfigureLogger('error', logging.ERROR)
-MockPaymentGatway = MockPaymentGateway(LoggerInfo)
+MockPayment = MockPaymentGateway(LoggerInfo)
 
 def ProcessOrders(ch, method, properties, body):
     order = json.loads(body)
     LoggerInfo.info(f"Processando Pedido: {order}")
 
-    MockPaymentGatway.ProcessPayment(order)
+    MockPayment.ProcessPayment(order)
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 try:
