@@ -1,8 +1,10 @@
 ﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Models.Users;
+using StackExchange.Redis;
 using System.Security.Principal;
 using static Google.Cloud.Firestore.V1.StructuredQuery.Types;
 

@@ -8,7 +8,6 @@ using static NaRegua_Api.Models.Users.Requests;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Common.Enums;
 using NaRegua_Api.QueueService;
-using Newtonsoft.Json;
 
 namespace NaRegua_Api.Controllers.V1.Users
 {
@@ -17,13 +16,14 @@ namespace NaRegua_Api.Controllers.V1.Users
     {
         private readonly ILogger<UserController> _logger;
         private readonly IUserProvider _provider;
-        private readonly IQueueService _queueService;
+        private readonly IOrderProvider _orderProvider;
 
-        public UserController(ILogger<UserController> logger, IUserProvider provider, IQueueService queueService)
+        public UserController(ILogger<UserController> logger, IUserProvider provider, 
+            IQueueService queueService, IOrderProvider orderProvider)
         {
             _logger = logger;
             _provider = provider;
-            _queueService = queueService;
+            _orderProvider = orderProvider;
         }
 
         [HttpPost] // POST /v1/user
@@ -78,20 +78,7 @@ namespace NaRegua_Api.Controllers.V1.Users
                     return BadRequest(result);
                 }
 
-                var i = new SendOrder();
-                i.OrderId = Guid.NewGuid().ToString();
-                i.PaymentType = PaymentType.Pix;
-
-                //Enviar para Fila de Pagamentos
-
-                var messageJson = JsonConvert.SerializeObject(i);
-                _queueService.PublishMessage(messageJson);
-
-                var p = new RedisService.RedisService("host.docker.internal:6379,ssl=False,abortConnect=False");
-
-                //p.SetString(i.OrderId, "O CARA");
-
-                var n = p.GetString(i.OrderId);
+                _orderProvider.SetPaymentOrder(result.Message, request.PaymentType, request.CardNumber);
 
                 var response = result.ToResponse();
                 _logger.LogInformation("UserController::ScheduleAppointmentAsync");
@@ -222,12 +209,6 @@ namespace NaRegua_Api.Controllers.V1.Users
                 _logger.LogError(ex.ToString());
                 return Problem(ex.Message);
             }
-        }
-
-        public class SendOrder
-        {
-            public string OrderId { get; set; }
-            public PaymentType PaymentType { get; set; }
         }
     }
 }

@@ -1,16 +1,15 @@
-﻿using StackExchange.Redis;
+﻿using NaRegua_Api.Configurations;
+using StackExchange.Redis;
 
 namespace NaRegua_Api.RedisService
 {
     public class RedisService : IRedisService
     {
         private readonly ConnectionMultiplexer _redisConnection;
-
-        public RedisService(string connectionString)
+        public RedisService()
         {
-            _redisConnection = ConnectionMultiplexer.Connect(connectionString);
+            _redisConnection = ConnectionMultiplexer.Connect(AppSettings.Redis);
         }
-
         public IDatabase GetDatabase()
         {
             return _redisConnection.GetDatabase();

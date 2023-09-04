@@ -15,6 +15,8 @@ namespace NaRegua_Api.Common.Dependency
         {
             services.AddSingleton<ITokenProvider, TokenProvider>();
             services.AddSingleton<IQueueService, RabbitMQService>();
+            services.AddSingleton<RedisService.IRedisService, RedisService.RedisService>();
+            services.AddSingleton<IOrderProvider, OrderProviderFake>();
 
             if (AppSettings.UseFakeProviders)
             {

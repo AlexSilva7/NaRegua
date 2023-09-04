@@ -7,6 +7,7 @@
         public static string JwtKey;
         public static double ExpiryDurationMinutes;
         public static string Database;
+        public static string Redis;
 
         public static void SetConfig(IConfiguration configuration)
         {
@@ -15,6 +16,7 @@
             ExpiryDurationMinutes = double.Parse(configuration.GetSection("Jwt")["ExpiryDurationMinutes"]);
             ConnectionString = configuration.GetSection("ConnectionStrings")["SqlServer"];
             Database = configuration.GetSection("Database")["UseDatabase"];
+            Redis = configuration.GetSection("ConnectionStrings")["Redis"];
         }
     }
 }
