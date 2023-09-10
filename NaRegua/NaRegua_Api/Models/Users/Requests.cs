@@ -27,5 +27,12 @@ namespace NaRegua_Api.Models.Users
             public string saloonCode { get; set; }
         }
 
+        public class DepositsFundsRequests
+        {
+            public decimal Value { get; set; }
+            public PaymentType PaymentType { get; set; }
+
+            public string? CardNumber { get; set; } = string.Empty;
+        }
     }
 }

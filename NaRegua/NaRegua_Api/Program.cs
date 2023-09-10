@@ -1,8 +1,10 @@
+using Google.Api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NaRegua_Api.Common.Dependency;
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Controllers.V1.Criptograph;
+using NaRegua_Api.Providers;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,8 @@ AppSettings.SetConfig(builder.Configuration);
 DependencyResolver.SetDependency(builder.Services);
 
 var key = Encoding.ASCII.GetBytes(AppSettings.JwtKey);
+
+builder.Services.AddHostedService<MyBackgroundService>();
 
 builder.Services.AddAuthentication(options =>
 {

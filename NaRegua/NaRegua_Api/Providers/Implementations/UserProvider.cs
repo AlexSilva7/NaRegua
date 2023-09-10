@@ -35,6 +35,11 @@ namespace NaRegua_Api.Providers.Implementations
             return new GenericResult { Success = true };
         }
 
+        public Task CheckOpenOrdersAndUpdateUserBalances()
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<GenericResult> CreateUserAsync(User user)
         {
             try
@@ -47,6 +52,16 @@ namespace NaRegua_Api.Providers.Implementations
             }
 
             return new GenericResult { Success = true };
+        }
+
+        public Task<GenericResult> DepositFundsAsync(IPrincipal user, DepositInfo depositInfo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<AccountBalanceResult> GetAccountBalanceAsync(IPrincipal user)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<SchedulingResult> GetAppointmentAsync(IPrincipal user)

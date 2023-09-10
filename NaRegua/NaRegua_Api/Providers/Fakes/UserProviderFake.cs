@@ -4,9 +4,8 @@ using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Models.Users;
-using StackExchange.Redis;
 using System.Security.Principal;
-using static Google.Cloud.Firestore.V1.StructuredQuery.Types;
+using static Google.Rpc.Context.AttributeContext.Types;
 
 namespace NaRegua_Api.Providers.Fakes
 {
@@ -14,15 +13,19 @@ namespace NaRegua_Api.Providers.Fakes
     {
         private readonly IHairdresserProvider _hairdresserProvider;
         private readonly ISaloonProvider _saloonProvider;
+        private readonly IOrderProvider _orderProvider;
 
         public static List<User> _users = new List<User>();
         public static Dictionary<string, List<Scheduling>> _scheduleAppointment = new Dictionary<string, List<Scheduling>>();
         public static Dictionary<string, List<Saloon>> _userFavoriteSaloons = new Dictionary<string, List<Saloon>>();
+        public static Dictionary<string, List<OpenDepositOrders>> _userOpenDepositOrders = new Dictionary<string, List<OpenDepositOrders>>();
+        public static Dictionary<string, Dictionary<string, decimal>> _userAccountBalance = new Dictionary<string, Dictionary<string, decimal>>();
 
-        public UserProviderFake(IHairdresserProvider hairdresserProvider, ISaloonProvider saloonProvider)
+        public UserProviderFake(IHairdresserProvider hairdresserProvider, ISaloonProvider saloonProvider, IOrderProvider orderProvider)
         {
             _hairdresserProvider = hairdresserProvider;
             _saloonProvider = saloonProvider;
+            _orderProvider = orderProvider;
         }
 
         public Task<GenericResult> CreateUserAsync(User user)
@@ -38,6 +41,10 @@ namespace NaRegua_Api.Providers.Fakes
             }
 
             _users.Add(user);
+            _userAccountBalance.Add(user.Id, new Dictionary<string, decimal>
+            {
+                { user.Document, 0 }
+            });
 
             return Task.FromResult(new GenericResult
             {
@@ -280,6 +287,91 @@ namespace NaRegua_Api.Providers.Fakes
             }
 
             return new RegisteredResult { Registered = false };
+        }
+
+        public Task<GenericResult> DepositFundsAsync(IPrincipal user, DepositInfo deposit)
+        {
+            var accountId = Validations.FindFirstClaimOfType(user, "AccountId");
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+
+            var orderId = Guid.NewGuid().ToString();
+
+            var depositOrders = new OpenDepositOrders
+            {
+                AccountId = accountId,
+                DocumentUser = document,
+                OrderId = orderId,
+                PaymentType = deposit.PaymentType,
+                CardNumber = deposit.CardNumber,
+                Value = deposit.Value,
+            };
+
+            if (_userOpenDepositOrders.ContainsKey(document))
+            {
+                _userOpenDepositOrders[document].Add(depositOrders);
+            }
+            else
+            {
+                _userOpenDepositOrders.Add(document, new List<OpenDepositOrders>
+                {
+                    { depositOrders }
+                });
+            }
+            
+            _orderProvider.SetPaymentOrder(orderId, deposit.PaymentType, deposit.CardNumber);
+
+            return Task.FromResult(new GenericResult
+            {
+                Message = "Order placed, awaiting payment confirmation.",
+                Success = true
+            });
+        }
+
+        public Task<AccountBalanceResult> GetAccountBalanceAsync(IPrincipal user)
+        {
+            var accountId = Validations.FindFirstClaimOfType(user, "AccountId");
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+
+            var value = _userAccountBalance[accountId][document];
+
+            return Task.FromResult(new AccountBalanceResult
+            {
+                Balance = value,
+                Success = true
+            });
+        }
+
+        public async Task CheckOpenOrdersAndUpdateUserBalances()
+        {
+            var objRemovePendingPaymentOrders = new List<OpenDepositOrders>();
+
+            foreach(var order in _userOpenDepositOrders)
+            {
+                foreach (var deposit in order.Value)
+                {
+                    var accountId = deposit.AccountId;
+                    var orderId = deposit.OrderId;
+                    var depositValue = deposit.Value;
+                    var userDocument = deposit.DocumentUser;
+
+                    var status = await _orderProvider.GetPaymentOrderStatus(orderId);
+
+                    if(status == OrderStatus.Confirmed)
+                    {
+                        _userAccountBalance[accountId][userDocument] += depositValue;
+                    }
+
+                    if(status != OrderStatus.PendingPayment)
+                    {
+                        objRemovePendingPaymentOrders.Add(deposit);
+                    }
+                }
+            }
+
+            foreach (var order in objRemovePendingPaymentOrders)
+            {
+                _userOpenDepositOrders[order.DocumentUser].Remove(order);
+            }
         }
 
         private class RegisteredResult

@@ -19,7 +19,7 @@ namespace NaRegua_Api.Controllers.V1.Users
         private readonly IOrderProvider _orderProvider;
 
         public UserController(ILogger<UserController> logger, IUserProvider provider, 
-            IQueueService queueService, IOrderProvider orderProvider)
+            IOrderProvider orderProvider)
         {
             _logger = logger;
             _provider = provider;

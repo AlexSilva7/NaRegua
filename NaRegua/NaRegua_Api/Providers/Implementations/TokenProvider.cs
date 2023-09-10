@@ -19,6 +19,7 @@ namespace NaRegua_Api.Providers.Implementations
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
+                    new Claim("AccountId", user.Id),
                     new Claim(ClaimTypes.Name, user.Name),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim("Phone", user.Phone),

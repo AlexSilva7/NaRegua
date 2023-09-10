@@ -31,7 +31,7 @@ services:
     restart: always
     container_name: python_worker
     volumes:
-      - ./logs:/app/logs
+      - ./Logs:/app/logs
     links:
       - rbmq
     depends_on:
@@ -43,6 +43,8 @@ services:
     build:
       context: ./NaRegua_Api  # Caminho para a pasta do projeto ASP.NET
     container_name: aspnet_api
+    volumes:
+      - ./Logs:/app/logs
     restart: always
     links:
       - rbmq

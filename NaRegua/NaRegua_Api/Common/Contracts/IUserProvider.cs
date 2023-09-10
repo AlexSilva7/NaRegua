@@ -13,11 +13,21 @@ namespace NaRegua_Api.Common.Contracts
         Task<ListSaloonsResult> GetUserFavoriteSaloonsAsync(IPrincipal user);
         Task<GenericResult> AddUserSalonAsFavoriteAsync(IPrincipal user, string saloonCode);
         Task<GenericResult> RemoveSalonFromFavoritesAsync(IPrincipal user, string saloonCode);
+        Task<GenericResult> DepositFundsAsync(IPrincipal user, DepositInfo depositInfo);
+        Task<AccountBalanceResult> GetAccountBalanceAsync(IPrincipal user);
+        Task CheckOpenOrdersAndUpdateUserBalances();
     }
 
     public class SchedulingResult
     {
         public IEnumerable<Scheduling> Resources { get; set; }
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+    }
+
+    public class AccountBalanceResult
+    {
+        public decimal Balance { get; set; }
         public bool Success { get; set; }
         public string? Message { get; set; }
     }

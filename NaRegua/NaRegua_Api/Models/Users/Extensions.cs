@@ -1,4 +1,5 @@
 ﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Models.Auth;
 using static NaRegua_Api.Models.Users.Requests;
 using static NaRegua_Api.Models.Users.Responses;
@@ -11,6 +12,7 @@ namespace NaRegua_Api.Models.Users
         {
             return new User
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = input.Name,
                 Document = input.Document,
                 Phone = input.Phone,
@@ -25,6 +27,16 @@ namespace NaRegua_Api.Models.Users
             return new SchedulingResponse
             {
                 Resources = input.Resources
+            };
+        }
+
+        public static DepositInfo ToDomain(this DepositsFundsRequests input)
+        {
+            return new DepositInfo
+            {
+                Value = input.Value,
+                PaymentType = input.PaymentType,
+                CardNumber = input.CardNumber
             };
         }
     }

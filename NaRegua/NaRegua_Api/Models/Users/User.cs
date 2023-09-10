@@ -6,6 +6,8 @@ namespace NaRegua_Api.Models.Users
     public class User
     {
         [FirestoreProperty]
+        public string Id { get; set; }
+        [FirestoreProperty]
         public string Name { get; set; }
         [FirestoreProperty]
         public string Document { get; set; }

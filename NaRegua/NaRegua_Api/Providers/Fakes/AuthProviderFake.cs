@@ -62,6 +62,7 @@ namespace NaRegua_Api.Providers.Fakes
                     IsCustomer = hairdressers.IsCustomer
                 };
             }
+
             var x = Criptograph.HashPass(auth.Password);
             if (user.Password != Criptograph.HashPass(auth.Password)) return Task.FromResult(
                 new AuthResult

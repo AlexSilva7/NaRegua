@@ -21,10 +21,17 @@ namespace NaRegua_Api.RedisService
             database.StringSet(key, value, expiry);
         }
 
-        public string GetString(string key)
+        public string? GetString(string key)
         {
-            var database = GetDatabase();
-            return database.StringGet(key);
+            try
+            {
+                return GetDatabase().StringGet(key);
+            }
+            catch (Exception ex)
+            {
+                var x = ex.Message;
+                return x;
+            }
         }
     }
 }

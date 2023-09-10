@@ -5,6 +5,9 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
+# Crie a pasta /app/logs dentro do container
+RUN mkdir -p /app/logs
+
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["NaRegua_Api.csproj", "NaRegua_Api/"]
