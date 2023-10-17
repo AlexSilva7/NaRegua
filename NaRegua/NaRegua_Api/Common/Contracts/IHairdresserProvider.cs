@@ -16,6 +16,8 @@ namespace NaRegua_Api.Common.Contracts
         Task<GenericResult> SetAppointmentsFromTheProfessional(string orderId, IPrincipal principal, string document, DateTime dateTime);
         Task<EvaluationAverageResult> GetEvaluationAverageFromTheProfessional(string document);
         Task<GenericResult> SendEvaluationAverageFromTheProfessional(ProfessionalEvaluation evaluation);
+        Task<AccountBalanceResult> GetAccountBalanceAsync(IPrincipal user);
+        Task<GenericResult> MakePayment(string document, decimal value);
     }
 
     public class AppointmentsListResult

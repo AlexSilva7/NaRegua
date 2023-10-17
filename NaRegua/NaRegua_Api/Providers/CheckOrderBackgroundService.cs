@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.Hosting;
-using NaRegua_Api.Common.Contracts;
+﻿using NaRegua_Api.Common.Contracts;
 
 namespace NaRegua_Api.Providers
 {
-    public class MyBackgroundService : BackgroundService
+    public class CheckOrderBackgroundService : BackgroundService
     {
-        private readonly ILogger<MyBackgroundService> _logger;
+        private readonly ILogger<CheckOrderBackgroundService> _logger;
         private readonly IUserProvider _userProvider;
 
-        public MyBackgroundService(ILogger<MyBackgroundService> logger, IUserProvider userProvider)
+        public CheckOrderBackgroundService(ILogger<CheckOrderBackgroundService> logger, IUserProvider userProvider)
         {
             _logger = logger;
             _userProvider = userProvider;
@@ -18,20 +17,16 @@ namespace NaRegua_Api.Providers
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                // Coloque aqui o código que deseja executar periodicamente
-
                 try
                 {
                     await _userProvider.CheckOpenOrdersAndUpdateUserBalances();
                 }
                 catch (Exception ex)
                 {
-                    var x = 0;
+                    _logger.LogError($"CheckOrderBackgroundService :: {ex.Message}");
                 }
-                
-                //_logger.LogInformation("Executando tarefa agendada...");
 
-                await Task.Delay(TimeSpan.FromSeconds(20), stoppingToken); // Intervalo de 1 hora
+                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
     }

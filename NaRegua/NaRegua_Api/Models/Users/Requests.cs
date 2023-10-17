@@ -18,8 +18,6 @@ namespace NaRegua_Api.Models.Users
         {
             public string DocumentProfessional { get; set; }
             public DateTime DateTime { get; set; }
-            public PaymentType PaymentType { get; set; }
-            public string CardNumber { get; set; }
         }
 
         public class AddFavoriteRequest

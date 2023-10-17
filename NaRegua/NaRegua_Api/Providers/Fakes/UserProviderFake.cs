@@ -1,11 +1,11 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Common.Validations;
+using NaRegua_Api.Configurations;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Saloon;
 using NaRegua_Api.Models.Users;
 using System.Security.Principal;
-using static Google.Rpc.Context.AttributeContext.Types;
 
 namespace NaRegua_Api.Providers.Fakes
 {
@@ -60,6 +60,18 @@ namespace NaRegua_Api.Providers.Fakes
 
         public Task<GenericResult> ScheduleAppointmentAsync(IPrincipal user, DateTime dateTime, string documentProfessional)
         {
+            var accountId = Validations.FindFirstClaimOfType(user, "AccountId");
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+
+            if (_userAccountBalance[accountId][document] < AppSettings.CostOfService)
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Message = "Insufficient balance to schedule service",
+                    Success = false
+                });
+            }
+
             if (_hairdresserProvider.GetHairdressersList().Count() == 0 ||
                 _hairdresserProvider.GetHairdressersFromDocument(documentProfessional) == null ||
                 !_hairdresserProvider.GetProfessionalAvailability(documentProfessional).Result.Success)
@@ -92,16 +104,15 @@ namespace NaRegua_Api.Providers.Fakes
                 });
             }
 
-            var document = Validations.FindFirstClaimOfType(user, "Document");
             var schedules = GetAppointmentAsync(user).Result.Resources;
 
-            //Verifica se o usuário já tem 4 marcações em 30 dias
-            var countSchedules = schedules.Where(x => x.DateTime.Date <= DateTime.Now.AddDays(30)).Count();
+            //Verifica se o usuário já tem 4 marcações em 10 dias
+            var countSchedules = schedules.Where(x => x.DateTime.Date <= DateTime.Now.AddDays(10)).Count();
             if(countSchedules >= 4)
             {
                 return Task.FromResult(new GenericResult
                 {
-                    Message = "user already has 4 appointments this month, it is not possible to schedule any more appointments.",
+                    Message = "user already has 10 appointments this month, it is not possible to schedule any more appointments.",
                     Success = false
                 });
             }
@@ -150,6 +161,10 @@ namespace NaRegua_Api.Providers.Fakes
             _hairdresserProvider.SetAppointmentsFromTheProfessional(orderId, user, documentProfessional, dateTime);
 
             _scheduleAppointment.TryAdd(document, list);
+
+            _userAccountBalance[accountId][document] -= AppSettings.CostOfService;
+
+            _hairdresserProvider.MakePayment(documentProfessional, AppSettings.CostOfService);
 
             return Task.FromResult(new GenericResult
             {
@@ -358,7 +373,14 @@ namespace NaRegua_Api.Providers.Fakes
 
                     if(status == OrderStatus.Confirmed)
                     {
-                        _userAccountBalance[accountId][userDocument] += depositValue;
+                        try
+                        {
+                            _userAccountBalance[accountId][userDocument] += depositValue;
+                        }
+                        catch
+                        {
+                            continue;
+                        }
                     }
 
                     if(status != OrderStatus.PendingPayment)

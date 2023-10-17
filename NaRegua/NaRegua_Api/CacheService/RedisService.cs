@@ -1,9 +1,10 @@
-﻿using NaRegua_Api.Configurations;
+﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Configurations;
 using StackExchange.Redis;
 
-namespace NaRegua_Api.RedisService
+namespace NaRegua_Api.CacheService
 {
-    public class RedisService : IRedisService
+    public class RedisService : ICacheService
     {
         private readonly ConnectionMultiplexer _redisConnection;
         public RedisService()

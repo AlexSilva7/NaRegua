@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Common.Validations;
 using NaRegua_Api.Models.Users;
-using static Google.Rpc.Context.AttributeContext.Types;
 using static NaRegua_Api.Models.Users.Requests;
 
 namespace NaRegua_Api.Controllers.V1.Wallet
@@ -13,17 +13,24 @@ namespace NaRegua_Api.Controllers.V1.Wallet
     {
         private readonly ILogger<WalletController> _logger;
         private readonly IUserProvider _userProvider;
-        public WalletController(ILogger<WalletController> logger, IUserProvider userProvider)
+        private readonly IHairdresserProvider _hairdresserProvider;
+        public WalletController(ILogger<WalletController> logger, IUserProvider userProvider, 
+            IHairdresserProvider hairdresserProvider)
         {
             _logger = logger;
             _userProvider = userProvider;
+            _hairdresserProvider = hairdresserProvider;
         }
 
         [Authorize]
         [HttpPost("add-funds")]
         public async Task<IActionResult> PostAddFundsAccountAsync([FromBody] DepositsFundsRequests request)
         {
-            if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
+            if (request?.PaymentType is null || request.Value == 0) 
+                return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
+
+            if (request.PaymentType == PaymentType.Credit && string.IsNullOrEmpty(request.CardNumber))
+                return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
             var result = await _userProvider.DepositFundsAsync(User, request.ToDomain());
             return Ok(result);
@@ -33,8 +40,16 @@ namespace NaRegua_Api.Controllers.V1.Wallet
         [HttpGet("balance-account")]
         public async Task<IActionResult> GetBalanceAccountAsync()
         {
-            var result = await _userProvider.GetAccountBalanceAsync(User);
-            return Ok(result);
+            var IsCustomer = Validations.FindFirstClaimOfType(User, "IsCustomer");
+
+            if (bool.Parse(IsCustomer))
+            {
+                return Ok(await _userProvider.GetAccountBalanceAsync(User));
+            }
+            else
+            {
+                return Ok(await _hairdresserProvider.GetAccountBalanceAsync(User));
+            }
         }
     }
 }

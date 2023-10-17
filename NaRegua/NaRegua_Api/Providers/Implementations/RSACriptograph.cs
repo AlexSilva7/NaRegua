@@ -10,8 +10,8 @@ namespace NaRegua_Api.Providers.Implementations
 
     public class RSACriptograph
     {
-        private const string PrivateKeyFilePath = "pem/private_key.pem";
-        private const string PublicKeyFilePath = "pem/public_key.pem";
+        private const string PrivateKeyFilePath = "private_key.pem";
+        private const string PublicKeyFilePath = "public_key.pem";
 
         public RSACriptograph()
         {

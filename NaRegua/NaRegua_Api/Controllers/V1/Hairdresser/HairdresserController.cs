@@ -120,8 +120,6 @@ namespace NaRegua_Api.Controllers.V1.Hairdresser
         {
             try
             {
-                if (!Validations.IsCustomer(User)) return NotFound();
-
                 _logger.LogDebug($"HairdresserController::GetProfessionalAvailability - Request: {document}");
                 var result = await _provider.GetProfessionalAvailability(document);
 

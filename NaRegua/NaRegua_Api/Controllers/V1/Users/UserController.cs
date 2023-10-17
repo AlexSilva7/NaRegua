@@ -65,8 +65,6 @@ namespace NaRegua_Api.Controllers.V1.Users
             {
                 if (Validations.ChecksIfIsNullProperty(request)) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
 
-                if (request.PaymentType != PaymentType.Credit && request.PaymentType != PaymentType.Pix) return BadRequest(new { GenericMessage.INCOMPLETE_FIELDS });
-
                 if (!Validations.IsCustomer(User)) return NotFound();
 
                 _logger.LogDebug($"UserController::ScheduleAppointmentAsync");
@@ -77,8 +75,6 @@ namespace NaRegua_Api.Controllers.V1.Users
                     _logger.LogError($"UserController::ScheduleAppointmentAsync - {result.Message}");
                     return BadRequest(result);
                 }
-
-                _orderProvider.SetPaymentOrder(result.Message, request.PaymentType, request.CardNumber);
 
                 var response = result.ToResponse();
                 _logger.LogInformation("UserController::ScheduleAppointmentAsync");

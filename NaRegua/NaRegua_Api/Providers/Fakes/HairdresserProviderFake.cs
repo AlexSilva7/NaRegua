@@ -1,11 +1,14 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Common.Validations;
+using NaRegua_Api.Configurations;
 using NaRegua_Api.Models.Auth;
 using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Hairdresser;
+using NaRegua_Api.Models.Users;
 using System.Security.Claims;
 using System.Security.Principal;
+using Scheduling = NaRegua_Api.Models.Hairdresser.Scheduling;
 
 namespace NaRegua_Api.Providers.Fakes
 {
@@ -23,6 +26,8 @@ namespace NaRegua_Api.Providers.Fakes
 
         public static Dictionary<string, List<double>> _evaluationAverages =
             new Dictionary<string, List<double>>();
+
+        public static Dictionary<string, Dictionary<string, decimal>> _hairdresserAccountBalance = new Dictionary<string, Dictionary<string, decimal>>();
 
         public HairdresserProviderFake(ISaloonProvider salonProvider)
         {
@@ -75,6 +80,10 @@ namespace NaRegua_Api.Providers.Fakes
             hairdresser.Password = Criptograph.HashPass(hairdresser.Password);
 
             _hairdressers.Add(hairdresser);
+            _hairdresserAccountBalance.Add(hairdresser.Id, new Dictionary<string, decimal>
+            {
+                { hairdresser.Document, 0 }
+            });
 
             return Task.FromResult(new GenericResult
             {
@@ -189,13 +198,19 @@ namespace NaRegua_Api.Providers.Fakes
 
             //Adiciona compromisso para o profissional
             _scheduleAppointment.TryGetValue(document, out var list);
-            list?.Add(new Scheduling
+
+            if(list is null)
+            {
+                _scheduleAppointment.Add(document, new List<Scheduling>());
+            }
+
+            _scheduleAppointment[document].Add(
+                new Scheduling
             {
                 OrderId = orderId,
                 CustomerName = name,
                 CustomerPhone = phone,
-                DateTime = dateTime,
-                OrderStatus = OrderStatus.PendingPayment
+                DateTime = dateTime
             });
 
             //Remove horário da lista de disponibilidade
@@ -224,7 +239,7 @@ namespace NaRegua_Api.Providers.Fakes
             
             return Task.FromResult(new EvaluationAverageResult
             {
-                Average = evaluations is not null ? evaluations.Average() : 0,
+                Average = evaluations is not null && evaluations.Any() ? evaluations.Average() : 0,
                 Success = true
             });
         }
@@ -250,13 +265,53 @@ namespace NaRegua_Api.Providers.Fakes
             }
 
             _evaluationAverages.TryGetValue(evaluation.ProfessionalDocument, out var value);
-            value?.Add(evaluation.Evaluation);
+            if (value is null)
+            {
+                _evaluationAverages.Add(evaluation.ProfessionalDocument, new List<double>());
+            }
+
+            _evaluationAverages[evaluation.ProfessionalDocument].Add(evaluation.Evaluation);
 
             return Task.FromResult(new GenericResult
             {
                 Message = "Review sent.",
                 Success = true
             });
+        }
+
+        public Task<AccountBalanceResult> GetAccountBalanceAsync(IPrincipal user)
+        {
+            var accountId = Validations.FindFirstClaimOfType(user, "AccountId");
+            var document = Validations.FindFirstClaimOfType(user, "Document");
+
+            var value = _hairdresserAccountBalance[accountId][document];
+
+            return Task.FromResult(new AccountBalanceResult
+            {
+                Balance = value,
+                Success = true
+            });
+        }
+
+        public Task<GenericResult> MakePayment(string document, decimal value)
+        {
+            try
+            {
+                var hairdresser = GetHairdressersFromDocument(document);
+                _hairdresserAccountBalance[hairdresser.Id][document] += value;
+
+                return Task.FromResult(new GenericResult
+                {
+                    Success = true
+                });
+            }
+            catch(Exception ex)
+            {
+                return Task.FromResult(new GenericResult
+                {
+                    Success = false
+                });
+            }
         }
 
         private RegisteredResult CheckIfAlreadyRegistered(string document, string username, string email)
@@ -293,62 +348,69 @@ namespace NaRegua_Api.Providers.Fakes
         private void InsertsFakes()
         {
             RegisterProfessionalFake("Jose Ribeiro Gomes", "48280663061", "teste@gmail.com", "(21) 99999-9999",
-                "teste1", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+                "teste1", "teste", "045B79");
 
-            RegisterProfessionalFake("Willian Souza", "92849257036", "teste@gmail.com", "(21) 00000-0000",
-                "teste2", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+            RegisterProfessionalFake("Willian Souza", "92849257036", "teste1@gmail.com", "(21) 00000-0000",
+                "teste2", "teste", "045B79");
 
-            RegisterProfessionalFake("Carlos Alberto Dominguez", "64730188080", "teste@gmail.com", "(21) 11111-1111",
-                "teste3", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+            RegisterProfessionalFake("Carlos Alberto Dominguez", "64730188080", "teste2@gmail.com", "(21) 11111-1111",
+                "teste3", "teste", "045B79");
 
-            RegisterProfessionalFake("Jefferson Laureano", "34125497036", "teste@gmail.com", "(21) 99999-9999",
-                "teste4", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "045B79");
+            RegisterProfessionalFake("Jefferson Laureano", "34125497036", "teste3@gmail.com", "(21) 99999-9999",
+                "teste4", "teste", "045B79");
 
-            RegisterProfessionalFake("Damiao Neves", "56599247008", "teste@gmail.com", "(21) 99999-9999", "teste5",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "978C50");
+            RegisterProfessionalFake("Damiao Neves", "56599247008", "teste4@gmail.com", "(21) 99999-9999", "teste5",
+                "teste", "978C50");
 
-            RegisterProfessionalFake("Lucas Silva", "33587139032", "teste@gmail.com", "(21) 99999-9999",
-                "teste6", "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "978C50");
+            RegisterProfessionalFake("Lucas Silva", "33587139032", "teste5@gmail.com", "(21) 99999-9999",
+                "teste6", "teste", "978C50");
 
-            RegisterProfessionalFake("Roberto Goncalves", "70623372002", "teste@gmail.com", "(21) 99999-9999", "teste7",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "978C50");
+            RegisterProfessionalFake("Roberto Goncalves", "70623372002", "teste6@gmail.com", "(21) 99999-9999", "teste7",
+                "teste", "978C50");
 
-            RegisterProfessionalFake("Aldamir Ribeiro", "99005221097", "teste@gmail.com", "(21) 99999-9999", "teste8",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+            RegisterProfessionalFake("Aldamir Ribeiro", "99005221097", "teste7@gmail.com", "(21) 99999-9999", "teste8",
+                "teste", "022D79");
 
-            RegisterProfessionalFake("Alex Silva", "12699068012", "teste@gmail.com", "(21) 99999-9999", "teste9",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+            RegisterProfessionalFake("Alex Silva", "12699068012", "teste8@gmail.com", "(21) 99999-9999", "teste9",
+                "teste", "022D79");
 
-            RegisterProfessionalFake("Otto Monteiro", "86379180001", "teste@gmail.com", "(21) 99999-9999", "teste10",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+            RegisterProfessionalFake("Otto Monteiro", "86379180001", "teste9@gmail.com", "(21) 99999-9999", "teste10",
+                "teste", "022D79");
 
-            RegisterProfessionalFake("Ricardo Souza", "94838570074", "teste@gmail.com", "(21) 99999-9999", "teste11",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+            RegisterProfessionalFake("Ricardo Souza", "94838570074", "teste10@gmail.com", "(21) 99999-9999", "teste11",
+                "teste", "022D79");
 
-            RegisterProfessionalFake("Joao Davi", "51542937035", "teste@gmail.com", "(21) 99999-9999", "teste12",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+            RegisterProfessionalFake("Joao Davi", "51542937035", "teste11@gmail.com", "(21) 99999-9999", "teste12",
+                "teste", "022D79");
 
-            RegisterProfessionalFake("Tiago Alves", "59321302026", "teste@gmail.com", "(21) 99999-9999", "teste13",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "022D79");
+            RegisterProfessionalFake("Tiago Alves", "59321302026", "teste12@gmail.com", "(21) 99999-9999", "teste13",
+                "teste", "022D79");
 
-            RegisterProfessionalFake("Dj Ed", "90376065044", "teste@gmail.com", "(21) 99999-9999", "teste14",
-                "ZngM/XfFNIwQpzfAu1NjfOaQEe8=", "011Z79");
+            RegisterProfessionalFake("Dj Ed", "90376065044", "teste13@gmail.com", "(21) 99999-9999", "teste14",
+                "teste", "011Z79");
 
             RegisterAvailabilityProfessionalsFake("48280663061");
             RegisterAvailabilityProfessionalsFake("92849257036");
             RegisterAvailabilityProfessionalsFake("34125497036");
+            RegisterAvailabilityProfessionalsFake("64730188080");
             RegisterAvailabilityProfessionalsFake("56599247008");
             RegisterAvailabilityProfessionalsFake("33587139032");
             RegisterAvailabilityProfessionalsFake("90376065044");
             RegisterAvailabilityProfessionalsFake("59321302026");
+            RegisterAvailabilityProfessionalsFake("94838570074");
+            RegisterAvailabilityProfessionalsFake("86379180001");
             RegisterAvailabilityProfessionalsFake("51542937035");
+            RegisterAvailabilityProfessionalsFake("70623372002");
+            RegisterAvailabilityProfessionalsFake("99005221097");
+            RegisterAvailabilityProfessionalsFake("12699068012");
         }
 
-        private void RegisterProfessionalFake(string name, string document, string email, string phone, 
+        private async void RegisterProfessionalFake(string name, string document, string email, string phone, 
             string username, string password, string code)
         {
-            _hairdressers.Add(new Hairdresser
+            var hairdresser = new Hairdresser
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = name,
                 Document = document,
                 Phone = phone,
@@ -356,17 +418,19 @@ namespace NaRegua_Api.Providers.Fakes
                 Username = username,
                 Password = password,
                 SaloonCode = code,
-                IsCustomer = true
-            });
+                IsCustomer = false
+            };
+
+            await CreateHairdresserAsync(hairdresser);
         }
-            
+
         private void RegisterAvailabilityProfessionalsFake(string document)
         {
             _workAvailabilityHairdressers.TryGetValue(document, out var aux);
 
             if (aux is null) aux = new List<DateTime>();
 
-            for (var x = 1; x < 6; x++)
+            for (var x = 1; x < 80; x++)
             {
                 var tomorrow = DateTime.Now.AddDays(x);
 

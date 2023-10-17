@@ -1,4 +1,6 @@
-﻿using RabbitMQ.Client;
+﻿using NaRegua_Api.Common.Contracts;
+using NaRegua_Api.Configurations;
+using RabbitMQ.Client;
 using System;
 using System.Text;
 
@@ -13,10 +15,10 @@ namespace NaRegua_Api.QueueService
         {
             var factory = new ConnectionFactory
             {
-                HostName = "localhost",
-                Port = 5672,
-                UserName = "user",
-                Password = "password"
+                HostName = AppSettings.QueueConfig.Host,
+                Port = AppSettings.QueueConfig.Port,
+                UserName = AppSettings.QueueConfig.User,
+                Password = AppSettings.QueueConfig.Pass
             };
 
             _connection = factory.CreateConnection();

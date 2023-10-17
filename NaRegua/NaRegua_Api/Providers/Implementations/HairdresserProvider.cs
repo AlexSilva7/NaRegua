@@ -38,6 +38,11 @@ namespace NaRegua_Api.Providers.Implementations
             return new GenericResult { Success = true };
         }
 
+        public Task<AccountBalanceResult> GetAccountBalanceAsync(IPrincipal user)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<AppointmentsListResult> GetAppointmentsFromTheProfessional(IPrincipal principal)
         {
             var document = Validations.FindFirstClaimOfType(principal, "Document");
@@ -93,6 +98,11 @@ namespace NaRegua_Api.Providers.Implementations
                 Resources = availabilitys,
                 Success = true
             };
+        }
+
+        public Task<GenericResult> MakePayment(string document, decimal value)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<GenericResult> SendEvaluationAverageFromTheProfessional(ProfessionalEvaluation evaluation)

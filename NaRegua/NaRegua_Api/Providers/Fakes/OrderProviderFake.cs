@@ -1,8 +1,6 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Common.Enums;
 using NaRegua_Api.Common.Statics;
-using NaRegua_Api.QueueService;
-using NaRegua_Api.RedisService;
 using Newtonsoft.Json;
 
 namespace NaRegua_Api.Providers.Fakes
@@ -10,11 +8,11 @@ namespace NaRegua_Api.Providers.Fakes
     public class OrderProviderFake : IOrderProvider
     {
         private readonly IQueueService _queueService;
-        private readonly IRedisService _redisService;
-        public OrderProviderFake(IQueueService queueService, IRedisService redisService) 
+        private readonly ICacheService _cacheService;
+        public OrderProviderFake(IQueueService queueService, ICacheService cacheService) 
         { 
             _queueService = queueService;
-            _redisService = redisService;
+            _cacheService = cacheService;
         }
         public Task<OrderStatus> GetPaymentOrderStatus(string orderId)
         {
@@ -25,7 +23,7 @@ namespace NaRegua_Api.Providers.Fakes
             }
             else
             {
-                var value = _redisService.GetString(orderId);
+                var value = _cacheService.GetString(orderId);
 
                 if (value != "0")
                 {

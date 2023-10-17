@@ -1,4 +1,5 @@
-﻿using NaRegua_Api.Common.Contracts;
+﻿using NaRegua_Api.CacheService;
+using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Providers.Fakes;
 using NaRegua_Api.Providers.Implementations;
@@ -15,7 +16,7 @@ namespace NaRegua_Api.Common.Dependency
         {
             services.AddSingleton<ITokenProvider, TokenProvider>();
             services.AddSingleton<IQueueService, RabbitMQService>();
-            services.AddSingleton<RedisService.IRedisService, RedisService.RedisService>();
+            services.AddSingleton<ICacheService, RedisService>();
             services.AddSingleton<IOrderProvider, OrderProviderFake>();
 
             if (AppSettings.UseFakeProviders)

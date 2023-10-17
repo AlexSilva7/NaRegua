@@ -53,6 +53,7 @@ namespace NaRegua_Api.Providers.Fakes
 
                 user = new User
                 {
+                    Id = hairdressers.Id,
                     Name = hairdressers.Name,
                     Username = hairdressers.Username,
                     Password = hairdressers.Password,
@@ -63,7 +64,6 @@ namespace NaRegua_Api.Providers.Fakes
                 };
             }
 
-            var x = Criptograph.HashPass(auth.Password);
             if (user.Password != Criptograph.HashPass(auth.Password)) return Task.FromResult(
                 new AuthResult
                 {
