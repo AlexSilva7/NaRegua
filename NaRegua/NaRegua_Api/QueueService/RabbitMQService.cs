@@ -21,21 +21,21 @@ namespace NaRegua_Api.QueueService
                 Password = AppSettings.QueueConfig.Pass
             };
 
-            _connection = factory.CreateConnection();
-            _channel = _connection.CreateModel();
+            //_connection = factory.CreateConnection();
+            //_channel = _connection.CreateModel();
 
-            // Verifica se a fila já existe
-            try
-            {
-                _channel.QueueDeclarePassive("QueueOrder");
-                Console.WriteLine($"A fila QueueOrder já existe.");
-            }
-            catch (Exception)
-            {
-                //_channel.ExchangeDeclare("ExchangeOrder", ExchangeType.Direct);
-                _channel.QueueDeclare("QueueOrder", durable: true, exclusive: false, autoDelete: false);
-                //_channel.QueueBind("QueueOrder", "ExchangeOrder", "QueueOrder", null);
-            }
+            //// Verifica se a fila já existe
+            //try
+            //{
+            //    _channel.QueueDeclarePassive("QueueOrder");
+            //    Console.WriteLine($"A fila QueueOrder já existe.");
+            //}
+            //catch (Exception)
+            //{
+            //    //_channel.ExchangeDeclare("ExchangeOrder", ExchangeType.Direct);
+            //    _channel.QueueDeclare("QueueOrder", durable: true, exclusive: false, autoDelete: false);
+            //    //_channel.QueueBind("QueueOrder", "ExchangeOrder", "QueueOrder", null);
+            //}
         }
         public void PublishMessage(string message)
         {
