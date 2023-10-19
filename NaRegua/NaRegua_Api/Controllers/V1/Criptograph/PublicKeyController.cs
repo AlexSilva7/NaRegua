@@ -13,7 +13,7 @@ namespace NaRegua_Api.Controllers.V1.Criptograph
         public PublicKeyController(ILogger<PublicKeyController> logger)
         {
             _logger = logger;
-            _rsaCriptograph = new RSACriptograph();
+            _rsaCriptograph = RSACriptograph.GetInstance();
         }
 
         [HttpGet]

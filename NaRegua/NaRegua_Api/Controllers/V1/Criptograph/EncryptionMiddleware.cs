@@ -1,12 +1,20 @@
-﻿namespace NaRegua_Api.Controllers.V1.Criptograph
+﻿using Google.Api;
+using NaRegua_Api.Providers.Implementations;
+using Newtonsoft.Json;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace NaRegua_Api.Controllers.V1.Criptograph
 {
     public class EncryptionMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly RSACriptograph _rsaCriptograph;
 
         public EncryptionMiddleware(RequestDelegate next)
         {
             _next = next;
+            _rsaCriptograph = RSACriptograph.GetInstance();
         }
 
         public async Task Invoke(HttpContext context)
@@ -43,21 +51,29 @@
             await _next(context);
         }
 
-        // Métodos auxiliares
-        // ...
-
-        private async Task<string> ExtractEncryptedBody(HttpRequest request)
+        private async Task<byte[]> ExtractEncryptedBody(HttpRequest request)
         {
-            // Lógica para extrair o corpo criptografado da requisição
-            // ...
-            return string.Empty;
+            var bodyStream = request.Body;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                await bodyStream.CopyToAsync(memoryStream);
+                return memoryStream.ToArray();
+            }
         }
 
-        private string DecryptBody(string encryptedBody)
+        private string DecryptBody(byte[] content)
         {
-            // Lógica para descriptografar o corpo usando o algoritmo assimétrico
-            // ...
-            return string.Empty;
+            var privateKey = _rsaCriptograph.GetPrivateKey();
+            using (var rsa = RSA.Create())
+            {
+                rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
+
+                var dataDecript = rsa.Decrypt(content, RSAEncryptionPadding.Pkcs1);
+                string decryptedData = Encoding.UTF8.GetString(dataDecript);
+
+                return decryptedData;
+            }
         }
 
         private bool IsValidDataType(string decryptedBody)
@@ -69,8 +85,25 @@
 
         private void UpdateRequestBody(HttpRequest request, string decryptedBody)
         {
-            // Atualizar o objeto de requisição com o corpo descriptografado
-            // ...
+            // Codifique a string descriptografada em bytes usando a codificação adequada
+            byte[] byteArray = Encoding.UTF8.GetBytes(decryptedBody);
+
+            // Crie um novo fluxo de memória com os bytes da string
+            var bodyStream = new MemoryStream(byteArray);
+
+            // Defina o corpo da solicitação como o novo fluxo de memória
+            request.Body = bodyStream;
+
+            // Lembre-se de atualizar o cabeçalho "Content-Length" para refletir o tamanho do novo corpo
+            request.ContentLength = byteArray.Length;
+
+            request.ContentType = "application/json";
+
+            //// Defina o tipo de conteúdo, se aplicável
+            //if (!string.IsNullOrWhiteSpace(request.ContentType))
+            //{
+            //    request.ContentType = "application/json"; // Substitua pelo tipo de conteúdo adequado
+            //}
         }
     }
 }

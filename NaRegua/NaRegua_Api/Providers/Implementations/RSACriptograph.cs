@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace NaRegua_Api.Providers.Implementations
@@ -10,25 +11,47 @@ namespace NaRegua_Api.Providers.Implementations
 
     public class RSACriptograph
     {
-        private const string PrivateKeyFilePath = "private_key.pem";
-        private const string PublicKeyFilePath = "public_key.pem";
+        private static RSACriptograph instance;
+        private static readonly object lockObject = new object();
 
+        private readonly string? ExecutablePath = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
         public RSACriptograph()
         {
-            using(var rsa = RSA.Create(1024))
+            using (var rsa = RSA.Create(4096))
             {
                 var privateKey = Convert.ToBase64String(rsa.ExportRSAPrivateKey());
-                File.WriteAllText(PrivateKeyFilePath, privateKey);
+                File.WriteAllText($"{ExecutablePath}/Pem/private_key.pem", privateKey);
 
                 var publicKey = Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo());
-                File.WriteAllText(PublicKeyFilePath, publicKey);
+                File.WriteAllText($"{ExecutablePath}/Pem/public_key.pem", publicKey);
             }
+        }
+
+        public static RSACriptograph GetInstance()
+        {
+            if (instance == null)
+            {
+                lock (lockObject)
+                {
+                    if (instance == null)
+                    {
+                        instance = new RSACriptograph();
+                    }
+                }
+            }
+            return instance;
         }
 
         public string GetPublicKey()
         {
-            var publicKey = File.ReadAllText(PublicKeyFilePath);
+            var publicKey = File.ReadAllText($"{ExecutablePath}/Pem/public_key.pem");
             return publicKey;
+        }
+
+        public string GetPrivateKey()
+        {
+            var privateKey = File.ReadAllText($"{ExecutablePath}/Pem/private_key.pem");
+            return privateKey;
         }
 
         public byte[] Encrypt(string content)
@@ -47,7 +70,7 @@ namespace NaRegua_Api.Providers.Implementations
         {
             using (var rsa = RSA.Create())
             {
-                var privateKey = File.ReadAllText(PrivateKeyFilePath);
+                var privateKey = File.ReadAllText($"{ExecutablePath}/Pem/public_key.pem");
                 rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
 
                 var dataDecript = rsa.Decrypt(content, RSAEncryptionPadding.Pkcs1);
