@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Common.Dependency;
 using NaRegua_Api.Configurations;
 using NaRegua_Api.Providers;
+using NaRegua_Api.Providers.Implementations;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +20,7 @@ AppSettings.SetConfig(builder.Configuration);
 DependencyResolver.SetDependency(builder.Services);
 
 builder.Services.AddHostedService<CheckOrderBackgroundService>();
+builder.Services.AddSingleton<IHealthService, HealthService>();
 
 var key = Encoding.ASCII.GetBytes(AppSettings.JwtKey);
 
