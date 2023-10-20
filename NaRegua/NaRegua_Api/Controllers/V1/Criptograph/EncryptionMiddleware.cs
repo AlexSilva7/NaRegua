@@ -1,6 +1,8 @@
 ﻿using Google.Api;
+using Microsoft.AspNetCore.Http;
 using NaRegua_Api.Providers.Implementations;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -19,36 +21,36 @@ namespace NaRegua_Api.Controllers.V1.Criptograph
 
         public async Task Invoke(HttpContext context)
         {
-            // Lógica do middleware para processar a requisição antes de chegar à controller
             var request = context.Request;
+            var path = request.Path.Value;
 
-            // Verificar se a requisição requer criptografia
-            if (request.Headers.ContainsKey("X-Encryption"))
+            if (path == "/v1/publickey")
             {
-                // Extrair o corpo criptografado da requisição
-                var encryptedBody = await ExtractEncryptedBody(request);
+                await _next(context);
+                return;
+            }
 
-                // Descriptografar o corpo usando o algoritmo assimétrico
+            if (!request.Headers.ContainsKey("X-Encryption"))
+            {
+                await SetInvalidRequestResponseMessage(context.Response, "The 'X-Encryption' header is required.");
+                return;
+            }
+            else
+            {
+                var encryptedBody = await ExtractEncryptedBody(request);
                 var decryptedBody = DecryptBody(encryptedBody);
 
-                // Verificar o tipo de dado do corpo descriptografado
-                //, request.Action
                 if (IsValidDataType(decryptedBody))
                 {
-                    // Atualizar o objeto de requisição com o corpo descriptografado
                     UpdateRequestBody(request, decryptedBody);
+                    await _next(context);
                 }
                 else
                 {
-                    // Tipo de dado inválido, retornar erro
-                    context.Response.StatusCode = 400;
-                    await context.Response.WriteAsync("Tipo de dado inválido.");
+                    await SetInvalidRequestResponseMessage(context.Response, "Invalid Data Type!");
                     return;
                 }
             }
-
-            // Chamar o próximo middleware ou a rota correspondente à controller
-            await _next(context);
         }
 
         private async Task<byte[]> ExtractEncryptedBody(HttpRequest request)
@@ -78,32 +80,41 @@ namespace NaRegua_Api.Controllers.V1.Criptograph
 
         private bool IsValidDataType(string decryptedBody)
         {
-            // Lógica para verificar o tipo de dado do corpo descriptografado
-            // ...
-            return true;
+            try
+            {
+                JObject.Parse(decryptedBody);
+                return true;
+
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
         }
 
         private void UpdateRequestBody(HttpRequest request, string decryptedBody)
         {
-            // Codifique a string descriptografada em bytes usando a codificação adequada
-            byte[] byteArray = Encoding.UTF8.GetBytes(decryptedBody);
-
-            // Crie um novo fluxo de memória com os bytes da string
+            var byteArray = Encoding.UTF8.GetBytes(decryptedBody);
             var bodyStream = new MemoryStream(byteArray);
 
-            // Defina o corpo da solicitação como o novo fluxo de memória
             request.Body = bodyStream;
-
-            // Lembre-se de atualizar o cabeçalho "Content-Length" para refletir o tamanho do novo corpo
             request.ContentLength = byteArray.Length;
 
-            request.ContentType = "application/json";
+            if (string.IsNullOrWhiteSpace(request.ContentType))
+            {
+                request.ContentType = "application/json"; // Substitua pelo tipo de conteúdo adequado
+            }
+        }
 
-            //// Defina o tipo de conteúdo, se aplicável
-            //if (!string.IsNullOrWhiteSpace(request.ContentType))
-            //{
-            //    request.ContentType = "application/json"; // Substitua pelo tipo de conteúdo adequado
-            //}
+        private async Task SetInvalidRequestResponseMessage(HttpResponse httpResponse, string message)
+        {
+            var responseMessage = new { message = message };
+            var jsonResponse = JsonConvert.SerializeObject(responseMessage);
+
+            httpResponse.ContentType = "application/json";
+            httpResponse.StatusCode = 400;
+
+            await httpResponse.WriteAsync(jsonResponse);
         }
     }
 }

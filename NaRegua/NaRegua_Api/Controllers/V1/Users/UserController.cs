@@ -6,8 +6,6 @@ using NaRegua_Api.Models.Generics;
 using NaRegua_Api.Models.Users;
 using static NaRegua_Api.Models.Users.Requests;
 using NaRegua_Api.Models.Saloon;
-using NaRegua_Api.Common.Enums;
-using NaRegua_Api.QueueService;
 
 namespace NaRegua_Api.Controllers.V1.Users
 {
