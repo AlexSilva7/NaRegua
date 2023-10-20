@@ -22,9 +22,8 @@ namespace NaRegua_Api.Controllers.V1.Criptograph
         public async Task Invoke(HttpContext context)
         {
             var request = context.Request;
-            var path = request.Path.Value;
 
-            if (path == "/v1/publickey")
+            if (request.Method == "GET")
             {
                 await _next(context);
                 return;

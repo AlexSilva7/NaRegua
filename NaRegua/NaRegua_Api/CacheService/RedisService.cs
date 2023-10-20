@@ -34,5 +34,26 @@ namespace NaRegua_Api.CacheService
                 return x;
             }
         }
+
+        public CacheInfo GetConnectionInfo()
+        {
+            try
+            {
+                if (_redisConnection is not null)
+                {
+                    return new CacheInfo
+                    {
+                        CacheProvider = _redisConnection.GetEndPoints()[0].ToString(),
+                        IsConnected = _redisConnection.IsConnected,
+                    };
+                }
+            }
+            catch { }
+
+            return new CacheInfo
+            {
+                IsConnected = false,
+            };
+        }
     }
 }

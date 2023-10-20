@@ -5,7 +5,13 @@ namespace NaRegua_Api.Providers
 {
     public class HealthService : IHealthService
     {
-        public HealthService() {}
+        private readonly ICacheService _cacheService;
+        private readonly IQueueService _queueService;
+        public HealthService(ICacheService cacheService, IQueueService queueService)
+        {
+            _cacheService = cacheService;
+            _queueService = queueService;
+        }
         public CpuInfo GetCpuInfoInfo()
         {
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -40,7 +46,7 @@ namespace NaRegua_Api.Providers
 
                             if (values.Length >= 9)
                             {
-                                // Observe que os valores estão em unidades de tempo em milissegundos.
+                                // Os valores estão em unidades de tempo em milissegundos.
                                 ulong user = ulong.Parse(values[1]);
                                 ulong nice = ulong.Parse(values[2]);
                                 ulong system = ulong.Parse(values[3]);
@@ -118,7 +124,9 @@ namespace NaRegua_Api.Providers
             {
                 HostName = System.Net.Dns.GetHostName(),
                 MemoryInfo = GetMemoryInfo(),
-                CpuInfo = GetCpuInfoInfo()
+                CpuInfo = GetCpuInfoInfo(),
+                CacheInfo = GetCacheServiceInfo(),
+                QueueInfo = GetQueueServiceInfo()
             };
         }
 
@@ -126,6 +134,18 @@ namespace NaRegua_Api.Providers
         {
             var value = line.Trim().Split(' ')[0];
             return ulong.Parse(value);
+        }
+
+        public QueueInfo GetQueueServiceInfo()
+        {
+            var connectInfo = _queueService.GetConnectionInfo();
+            return connectInfo;
+        }
+
+        public CacheInfo GetCacheServiceInfo()
+        {
+            var connectInfo = _cacheService.GetConnectionInfo();
+            return connectInfo;
         }
     }
 }

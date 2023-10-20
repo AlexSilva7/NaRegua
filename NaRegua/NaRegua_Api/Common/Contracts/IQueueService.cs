@@ -3,5 +3,6 @@
     public interface IQueueService
     {
         void PublishMessage(string message);
+        QueueInfo GetConnectionInfo();
     }
 }

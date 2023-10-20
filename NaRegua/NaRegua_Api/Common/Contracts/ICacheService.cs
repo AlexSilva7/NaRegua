@@ -7,5 +7,6 @@ namespace NaRegua_Api.Common.Contracts
         IDatabase GetDatabase();
         void SetString(string key, string value, TimeSpan? expiry = null);
         string GetString(string key);
+        CacheInfo GetConnectionInfo();
     }
 }

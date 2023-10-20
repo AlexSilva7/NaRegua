@@ -1,7 +1,6 @@
 ﻿using NaRegua_Api.Common.Contracts;
 using NaRegua_Api.Configurations;
 using RabbitMQ.Client;
-using System;
 using System.Text;
 
 namespace NaRegua_Api.QueueService
@@ -21,21 +20,18 @@ namespace NaRegua_Api.QueueService
                 Password = AppSettings.QueueConfig.Pass
             };
 
-            //_connection = factory.CreateConnection();
-            //_channel = _connection.CreateModel();
+            try
+            {
+                _connection = factory.CreateConnection();
+                _channel = _connection.CreateModel();
 
-            //// Verifica se a fila já existe
-            //try
-            //{
-            //    _channel.QueueDeclarePassive("QueueOrder");
-            //    Console.WriteLine($"A fila QueueOrder já existe.");
-            //}
-            //catch (Exception)
-            //{
-            //    //_channel.ExchangeDeclare("ExchangeOrder", ExchangeType.Direct);
-            //    _channel.QueueDeclare("QueueOrder", durable: true, exclusive: false, autoDelete: false);
-            //    //_channel.QueueBind("QueueOrder", "ExchangeOrder", "QueueOrder", null);
-            //}
+                _channel.QueueDeclarePassive("QueueOrder");
+                Console.WriteLine($"A fila QueueOrder já existe.");
+            }
+            catch (Exception)
+            {
+                //_channel.QueueDeclare("QueueOrder", durable: true, exclusive: false, autoDelete: false);
+            }
         }
         public void PublishMessage(string message)
         {
@@ -46,6 +42,31 @@ namespace NaRegua_Api.QueueService
         {
             _channel.Close();
             _connection.Close();
+        }
+
+        public QueueInfo GetConnectionInfo()
+        {
+            try
+            {
+                var countMessage = _channel.MessageCount("QueueOrder");
+
+                return new QueueInfo
+                {
+                    QueueProvider = "RabbitMQ",
+                    IsConnected = _connection.IsOpen,
+                    QueueLength = (int)countMessage,
+                    QueueLevel = 0
+                };
+            }
+            catch(Exception ex)
+            {
+                return new QueueInfo
+                {
+                    QueueProvider = "RabbitMQ",
+                    IsConnected = false,
+                    QueueLength = 0
+                };
+            }
         }
     }
 }
